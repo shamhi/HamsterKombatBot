@@ -12,12 +12,8 @@ class Settings(BaseSettings):
 
     ADD_TAPS_ON_TURBO: int = 2500
 
-    AUTO_UPGRADE_TAP: bool = True
-    MAX_TAP_LEVEL: int = 10
-    AUTO_UPGRADE_ENERGY: bool = True
-    MAX_ENERGY_LEVEL: int = 10
-    AUTO_UPGRADE_CHARGE: bool = True
-    MAX_CHARGE_LEVEL: int = 5
+    AUTO_UPGRADE: bool = True
+    MAX_LEVEL: int = 20
 
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
