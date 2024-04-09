@@ -166,7 +166,7 @@ class Tapper:
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
 
-        async with aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client:
+        async with (aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client):
             if proxy:
                 await self.check_proxy(http_client=http_client, proxy=proxy)
 
@@ -214,13 +214,16 @@ class Tapper:
                     total = int(player_data['totalCoins'])
                     earn_on_hour = player_data['earnPassivePerHour']
 
-                    energy_boost_time = player_data['boosts']['BoostFullAvailableTaps']['lastUpgradeAt']
+                    boosts = player_data['boosts']
+                    energy_boost_time = boosts.get('BoostFullAvailableTaps', {}).get('lastUpgradeAt', 0)
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
 
                     if active_turbo is False:
-                        if settings.APPLY_DAILY_ENERGY is True and energy_boost_time - time() > 3600:
+                        if (settings.APPLY_DAILY_ENERGY is True
+                                and available_energy < settings.MIN_AVAILABLE_ENERGY
+                                and energy_boost_time - time() > 3600):
                             logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
                             await asyncio.sleep(delay=5)
 
