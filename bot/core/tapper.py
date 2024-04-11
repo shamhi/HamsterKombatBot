@@ -96,6 +96,46 @@ class Tapper:
             logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error}")
             await asyncio.sleep(delay=3)
 
+    async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/list-tasks',
+                                              json={})
+            response.raise_for_status()
+
+            response_json = await response.json()
+            tasks = response_json['tasks']
+
+            return tasks
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Tasks: {error}")
+            await asyncio.sleep(delay=3)
+
+    async def select_exchange(self, http_client: aiohttp.ClientSession, exchange_id: str) -> bool:
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/select-exchange',
+                                              json={'exchangeId': exchange_id})
+            response.raise_for_status()
+
+            return True
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while Select Exchange: {error}")
+            await asyncio.sleep(delay=3)
+
+            return False
+
+    async def get_daily(self, http_client: aiohttp.ClientSession):
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/check-task',
+                                              json={'taskId': "streak_days"})
+            response.raise_for_status()
+
+            return True
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Daily: {error}")
+            await asyncio.sleep(delay=3)
+
+            return False
+
     async def apply_boost(self, http_client: aiohttp.ClientSession, boost_id: str) -> bool:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-boost',
@@ -183,6 +223,12 @@ class Tapper:
 
                         profile_data = await self.get_profile_data(http_client=http_client)
 
+                        exchange_id = profile_data.get('exchangeId')
+                        if not exchange_id:
+                            status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
+
                         last_passive_earn = profile_data['lastPassiveEarn']
                         earn_on_hour = profile_data['earnPassivePerHour']
 
@@ -191,6 +237,19 @@ class Tapper:
 
                         available_energy = profile_data['availableTaps']
                         balance = int(profile_data['balanceCoins'])
+
+                        tasks = await self.get_tasks(http_client=http_client)
+
+                        daily_task = tasks[-1]
+                        rewards = daily_task['rewardsByDays']
+                        is_completed = daily_task['isCompleted']
+                        days = daily_task['days']
+
+                        if is_completed is False:
+                            status = await self.get_daily(http_client=http_client)
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully get daily reward | "
+                                               f"Days: <m>{days}</m> | Reward coins: {rewards[days-1]['rewardCoins']}")
 
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
