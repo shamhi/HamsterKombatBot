@@ -235,7 +235,7 @@ class Tapper:
                         logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn}</g> | "
                                     f"Earn every hour: <y>{earn_on_hour}</y>")
 
-                        available_energy = profile_data['availableTaps']
+                        available_energy = profile_data.get('availableTaps', 0)
                         balance = int(profile_data['balanceCoins'])
 
                         tasks = await self.get_tasks(http_client=http_client)
@@ -266,7 +266,7 @@ class Tapper:
                     if not player_data:
                         continue
 
-                    available_energy = player_data['availableTaps']
+                    available_energy = player_data.get('availableTaps', 0)
                     new_balance = int(player_data['balanceCoins'])
                     calc_taps = new_balance - balance
                     balance = new_balance
@@ -282,7 +282,7 @@ class Tapper:
                     if active_turbo is False:
                         if (settings.APPLY_DAILY_ENERGY is True
                                 and available_energy < settings.MIN_AVAILABLE_ENERGY
-                                and energy_boost_time - time() > 3600):
+                                and time() - energy_boost_time > 3600):
                             logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
                             await asyncio.sleep(delay=5)
 
