@@ -23,7 +23,6 @@ Select an action:
 
     1. Create session
     2. Run clicker
-    3. Run via Telegram (Beta)
 """
 
 global tg_clients
