@@ -303,7 +303,7 @@ class Tapper:
                                 level = upgrade['level']
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
-                                if balance > price and level <= settings.MAX_LEVEL:
+                                if balance > price and level <= settings.MAX_LEVEL and upgrade_id not in settings.IGNORED_UPGRADES:
                                     logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
                                     await asyncio.sleep(delay=10)
 
