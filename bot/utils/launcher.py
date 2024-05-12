@@ -115,7 +115,10 @@ async def run_tasks(tg_clients: list[Client], db_pool: async_sessionmaker) -> No
 
             continue
 
-        await asyncio.gather(*chunk)
+        try:
+            await asyncio.gather(*chunk)
+        except Exception as error:
+            logger.error(f"Top error: {error}")
 
         offset += limit
 
