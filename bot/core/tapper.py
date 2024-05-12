@@ -229,6 +229,8 @@ class Tapper:
                     http_client.headers["Authorization"] = f"Bearer {access_token}"
                     headers["Authorization"] = f"Bearer {access_token}"
 
+                    local_db[self.session_name]['Token'] = access_token
+
                     profile_data = await self.get_profile_data(http_client=http_client)
 
                     exchange_id = profile_data.get('exchangeId')
