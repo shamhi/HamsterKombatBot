@@ -19,6 +19,9 @@ from db.functions import get_user_proxy, get_user_agent, save_log
 from .headers import headers
 
 
+local_db = {}
+
+
 class Tapper:
     def __init__(self, tg_client: Client, db_pool: async_sessionmaker, user_data: User):
         self.session_name = tg_client.name
@@ -205,7 +208,6 @@ class Tapper:
             logger.error(f"{self.session_name} | Proxy: {proxy} | Error: {error}")
 
     async def run(self, proxy: str | None) -> None:
-        access_token_created_time = 0
         turbo_time = 0
         active_turbo = False
 
@@ -218,171 +220,164 @@ class Tapper:
             if proxy:
                 await self.check_proxy(http_client=http_client, proxy=proxy)
 
-            while True:
-                try:
-                    if time() - access_token_created_time >= 3600:
-                        tg_web_data = await self.get_tg_web_data(proxy=proxy)
-                        access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
+            try:
+                local_token = local_db[self.session_name]['Token']
+                if not local_token:
+                    tg_web_data = await self.get_tg_web_data(proxy=proxy)
+                    access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
-                        http_client.headers["Authorization"] = f"Bearer {access_token}"
-                        headers["Authorization"] = f"Bearer {access_token}"
+                    http_client.headers["Authorization"] = f"Bearer {access_token}"
+                    headers["Authorization"] = f"Bearer {access_token}"
 
-                        access_token_created_time = time()
+                    profile_data = await self.get_profile_data(http_client=http_client)
 
-                        profile_data = await self.get_profile_data(http_client=http_client)
+                    exchange_id = profile_data.get('exchangeId')
+                    if not exchange_id:
+                        status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
+                        if status is True:
+                            logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
 
-                        exchange_id = profile_data.get('exchangeId')
-                        if not exchange_id:
-                            status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
+                    last_passive_earn = profile_data['lastPassiveEarn']
+                    earn_on_hour = profile_data['earnPassivePerHour']
 
-                        last_passive_earn = profile_data['lastPassiveEarn']
-                        earn_on_hour = profile_data['earnPassivePerHour']
+                    logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn}</g> | "
+                                f"Earn every hour: <y>{earn_on_hour}</y>")
 
-                        logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn}</g> | "
-                                    f"Earn every hour: <y>{earn_on_hour}</y>")
+                    available_energy = profile_data.get('availableTaps', 0)
+                    balance = int(profile_data['balanceCoins'])
 
-                        available_energy = profile_data.get('availableTaps', 0)
-                        balance = int(profile_data['balanceCoins'])
+                    local_db[self.session_name]['Balance'] = balance
 
-                        tasks = await self.get_tasks(http_client=http_client)
+                    tasks = await self.get_tasks(http_client=http_client)
 
-                        daily_task = tasks[-1]
-                        rewards = daily_task['rewardsByDays']
-                        is_completed = daily_task['isCompleted']
-                        days = daily_task['days']
+                    daily_task = tasks[-1]
+                    rewards = daily_task['rewardsByDays']
+                    is_completed = daily_task['isCompleted']
+                    days = daily_task['days']
 
-                        if is_completed is False:
-                            status = await self.get_daily(http_client=http_client)
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully get daily reward | "
-                                               f"Days: <m>{days}</m> | Reward coins: {rewards[days-1]['rewardCoins']}")
+                    if is_completed is False:
+                        status = await self.get_daily(http_client=http_client)
+                        if status is True:
+                            logger.success(f"{self.session_name} | Successfully get daily reward | "
+                                           f"Days: <m>{days}</m> | Reward coins: {rewards[days-1]['rewardCoins']}")
+                else:
+                    http_client.headers["Authorization"] = f"Bearer {local_token}"
 
-                    taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
+                    balance = local_db[self.session_name]['Balance']
 
-                    if active_turbo:
-                        taps += settings.ADD_TAPS_ON_TURBO
-                        if time() - turbo_time > 20:
-                            active_turbo = False
-                            turbo_time = 0
+                taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
-                    player_data = await self.send_taps(http_client=http_client,
-                                                       available_energy=available_energy,
-                                                       taps=taps)
+                if active_turbo:
+                    taps += settings.ADD_TAPS_ON_TURBO
+                    if time() - turbo_time > 20:
+                        active_turbo = False
+                        turbo_time = 0
 
-                    if not player_data:
-                        await save_log(
-                            db_pool=self.db_pool,
-                            phone=self.user_data.phone_number,
-                            status="ERROR",
-                            amount=balance,
-                        )
-                        continue
+                player_data = await self.send_taps(http_client=http_client,
+                                                   available_energy=available_energy,
+                                                   taps=taps)
 
-                    available_energy = player_data.get('availableTaps', 0)
-                    new_balance = int(player_data['balanceCoins'])
-                    calc_taps = new_balance - balance
-                    balance = new_balance
-                    total = int(player_data['totalCoins'])
-                    earn_on_hour = player_data['earnPassivePerHour']
-
-                    boosts = player_data['boosts']
-                    energy_boost_time = boosts.get('BoostFullAvailableTaps', {}).get('lastUpgradeAt', 0)
-
-                    logger.success(f"{self.session_name} | Successful tapped! | "
-                                   f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
-
+                if not player_data:
                     await save_log(
                         db_pool=self.db_pool,
                         phone=self.user_data.phone_number,
-                        status="TAP",
+                        status="ERROR",
                         amount=balance,
                     )
 
-                    if active_turbo is False:
-                        if (settings.APPLY_DAILY_ENERGY is True
-                                and available_energy < settings.MIN_AVAILABLE_ENERGY
-                                and time() - energy_boost_time > 3600):
-                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
-                            await asyncio.sleep(delay=5)
+                available_energy = player_data.get('availableTaps', 0)
+                new_balance = int(player_data['balanceCoins'])
+                calc_taps = new_balance - balance
+                balance = new_balance
+                total = int(player_data['totalCoins'])
+                earn_on_hour = player_data['earnPassivePerHour']
 
-                            status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully apply energy boost")
+                boosts = player_data['boosts']
+                energy_boost_time = boosts.get('BoostFullAvailableTaps', {}).get('lastUpgradeAt', 0)
 
-                                await save_log(
-                                    db_pool=self.db_pool,
-                                    phone=self.user_data.phone_number,
-                                    status="APPLY ENERGY BOOST",
-                                    amount=balance,
-                                )
+                logger.success(f"{self.session_name} | Successful tapped! | "
+                               f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
 
-                                await asyncio.sleep(delay=1)
+                local_db[self.session_name]['Balance'] = balance
 
-                            continue
+                await save_log(
+                    db_pool=self.db_pool,
+                    phone=self.user_data.phone_number,
+                    status="TAP",
+                    amount=balance,
+                )
 
-                        if settings.AUTO_UPGRADE is True:
-                            upgrades = await self.get_upgrades(http_client=http_client)
-                            available_upgrades = [data for data in upgrades if data['isAvailable'] is True]
+                if active_turbo is False:
+                    if (settings.APPLY_DAILY_ENERGY is True
+                            and available_energy < settings.MIN_AVAILABLE_ENERGY
+                            and time() - energy_boost_time > 3600):
+                        logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
+                        await asyncio.sleep(delay=5)
 
-                            for upgrade in available_upgrades:
-                                upgrade_id = upgrade['id']
-                                level = upgrade['level']
-                                price = upgrade['price']
-                                profit = upgrade['profitPerHourDelta']
-                                if balance > price and level <= settings.MAX_LEVEL:
-                                    logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
-                                    await asyncio.sleep(delay=10)
+                        status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
+                        if status is True:
+                            logger.success(f"{self.session_name} | Successfully apply energy boost")
 
-                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
-                                    if status is True:
-                                        earn_on_hour += profit
-                                        logger.success(
-                                            f"{self.session_name} | "
-                                            f"Successfully upgraded <e>{upgrade_id}</e> to <m>{level}</m> lvl | "
-                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{profit}</g>)")
+                            await save_log(
+                                db_pool=self.db_pool,
+                                phone=self.user_data.phone_number,
+                                status="APPLY ENERGY BOOST",
+                                amount=balance,
+                            )
 
-                                        await save_log(
-                                            db_pool=self.db_pool,
-                                            phone=self.user_data.phone_number,
-                                            status="UPGRADE ENERGY",
-                                            amount=balance,
-                                        )
+                            await asyncio.sleep(delay=1)
 
-                                        await asyncio.sleep(delay=1)
+                    if settings.AUTO_UPGRADE is True:
+                        upgrades = await self.get_upgrades(http_client=http_client)
+                        available_upgrades = [data for data in upgrades if data['isAvailable'] is True]
 
-                                    continue
+                        for upgrade in available_upgrades:
+                            upgrade_id = upgrade['id']
+                            level = upgrade['level']
+                            price = upgrade['price']
+                            profit = upgrade['profitPerHourDelta']
+                            if balance > price and level <= settings.MAX_LEVEL:
+                                logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
+                                await asyncio.sleep(delay=10)
 
-                        if available_energy < settings.MIN_AVAILABLE_ENERGY:
-                            logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
-                            logger.info(f"{self.session_name} | Sleep {settings.SLEEP_BY_MIN_ENERGY}s")
+                                status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+                                if status is True:
+                                    earn_on_hour += profit
+                                    logger.success(
+                                        f"{self.session_name} | "
+                                        f"Successfully upgraded <e>{upgrade_id}</e> to <m>{level}</m> lvl | "
+                                        f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{profit}</g>)")
 
-                            await asyncio.sleep(delay=settings.SLEEP_BY_MIN_ENERGY)
+                                    await save_log(
+                                        db_pool=self.db_pool,
+                                        phone=self.user_data.phone_number,
+                                        status="UPGRADE ENERGY",
+                                        amount=balance,
+                                    )
 
-                            continue
+                                    await asyncio.sleep(delay=1)
 
-                except InvalidSession as error:
-                    raise error
+                    if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                        logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
+                        logger.info(f"{self.session_name} | Sleep {settings.SLEEP_BY_MIN_ENERGY}s")
 
-                except Exception as error:
-                    logger.error(f"{self.session_name} | Unknown error: {error}")
-                    await asyncio.sleep(delay=3)
+                        await asyncio.sleep(delay=settings.SLEEP_BY_MIN_ENERGY)
 
-                else:
-                    sleep_between_clicks = randint(a=settings.SLEEP_BETWEEN_TAP[0], b=settings.SLEEP_BETWEEN_TAP[1])
+            except InvalidSession as error:
+                raise error
 
-                    if active_turbo is True:
-                        sleep_between_clicks = 4
-
-                    logger.info(f"Sleep {sleep_between_clicks}s")
-                    await asyncio.sleep(delay=sleep_between_clicks)
+            except Exception as error:
+                logger.error(f"{self.session_name} | Unknown error: {error}")
+                await asyncio.sleep(delay=3)
 
 
 async def run_tapper(tg_client: Client, db_pool: async_sessionmaker):
     try:
         async with tg_client:
             user_data = await tg_client.get_me()
+
+        if not local_db.get(tg_client.name):
+            local_db[tg_client.name] = {'Token': '', 'Balance': 0}
 
         proxy = None
         if settings.USE_PROXY_FROM_DB:

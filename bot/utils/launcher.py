@@ -100,6 +100,23 @@ async def process() -> None:
 
 
 async def run_tasks(tg_clients: list[Client], db_pool: async_sessionmaker) -> None:
-    tasks = [asyncio.create_task(run_tapper(tg_client=tg_client, db_pool=db_pool)) for tg_client in tg_clients]
+    tasks = [run_tapper(tg_client=tg_client, db_pool=db_pool) for tg_client in tg_clients]
+    limit = 10
+    offset = 0
 
-    await asyncio.gather(*tasks)
+    while True:
+        chunk = tasks[offset:offset + limit]
+
+        if not chunk:
+            tasks = [run_tapper(tg_client=tg_client, db_pool=db_pool) for tg_client in tg_clients]
+
+            limit = 10
+            offset = 0
+
+            continue
+
+        await asyncio.gather(*chunk)
+
+        offset += limit
+
+        await asyncio.sleep(delay=2)
