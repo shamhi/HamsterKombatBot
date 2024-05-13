@@ -249,6 +249,7 @@ class Tapper:
                         balance = int(profile_data['balanceCoins'])
 
                         local_db[self.session_name]['Balance'] = balance
+                        local_db[self.session_name]['AvailableEnergy'] = available_energy
 
                         tasks = await self.get_tasks(http_client=http_client)
 
@@ -266,6 +267,7 @@ class Tapper:
                         http_client.headers["Authorization"] = f"Bearer {local_token}"
 
                         balance = local_db[self.session_name]['Balance']
+                        available_energy = local_db[self.session_name]['AvailableEnergy']
 
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
@@ -302,6 +304,7 @@ class Tapper:
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
 
                     local_db[self.session_name]['Balance'] = balance
+                    local_db[self.session_name]['AvailableEnergy'] = available_energy
 
                     await save_log(
                         db_pool=self.db_pool,
@@ -391,7 +394,7 @@ async def run_tapper(tg_client: Client, db_pool: async_sessionmaker):
             user_data = await tg_client.get_me()
 
         if not local_db.get(tg_client.name):
-            local_db[tg_client.name] = {'Token': '', 'Balance': 0}
+            local_db[tg_client.name] = {'Token': '', 'Balance': 0, 'AvailableEnergy': 0}
 
         proxy = None
         if settings.USE_PROXY_FROM_DB:
