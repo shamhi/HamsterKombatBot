@@ -1,5 +1,6 @@
 import os
 import glob
+import shutil
 import asyncio
 import argparse
 
@@ -25,20 +26,55 @@ Select an action:
     2. Run clicker
 """
 
-global tg_clients
 
 def get_session_names() -> list[str]:
-    session_names = glob.glob("sessions/*.session")
-    session_names = [
-        os.path.splitext(os.path.basename(file))[0] for file in session_names
-    ]
+    session_names = glob.glob('sessions/*.session')
+    session_names = [os.path.splitext(os.path.basename(file))[0] for file in session_names]
 
     return session_names
 
 
-async def get_tg_clients() -> list[Client]:
-    global tg_clients
+def get_bad_session_names() -> list[str]:
+    try:
+        with open('sessions/bad_sessions.txt', 'r') as file:
+            bad_sessions = [session_name.strip('\n').split('.session')[0] for session_name in file.readlines()]
+    except FileNotFoundError:
+        bad_sessions = []
 
+    return bad_sessions
+
+
+def move_bad_sessions() -> None:
+    if not os.path.exists(path='sessions/bad_sessions/'):
+        os.mkdir(path='sessions/bad_sessions')
+
+    bad_session_names = get_bad_session_names()
+
+    for session_name in bad_session_names:
+        shutil.move(f'sessions/{session_name}.session', f'sessions/bad_sessions/{session_name}.session')
+
+    with open('sessions/bad_sessions.txt', 'w') as file:
+        file.write('')
+
+
+async def check_sessions(sessions: list[Client]) -> list[Client]:
+    checked_sessions = []
+    for session in sessions:
+        is_auth = await session.connect()
+
+        if is_auth is False:
+            with open('sessions/bad_sessions.txt', 'a') as file:
+                file.write(f"{session.name}.session\n")
+
+            continue
+
+        checked_sessions.append(session)
+        await session.disconnect()
+
+    return checked_sessions
+
+
+async def get_tg_clients() -> list[Client]:
     session_names = get_session_names()
 
     if not session_names:
@@ -47,23 +83,26 @@ async def get_tg_clients() -> list[Client]:
     if not settings.API_ID or not settings.API_HASH:
         raise ValueError("API_ID and API_HASH not found in the .env file.")
 
-    tg_clients = [
-        Client(
-            name=session_name,
-            api_id=settings.API_ID,
-            api_hash=settings.API_HASH,
-            workdir="sessions/",
-            plugins=dict(root="bot/plugins"),
-        )
-        for session_name in session_names
-    ]
+    bad_sessions = get_bad_session_names()
+
+    tg_clients = [Client(
+        name=session_name,
+        api_id=settings.API_ID,
+        api_hash=settings.API_HASH,
+        workdir='sessions/',
+        plugins=dict(root='bot/plugins')
+    ) for session_name in session_names if session_name not in bad_sessions]
+
+    tg_clients = await check_sessions(tg_clients)
 
     return tg_clients
 
 
 async def process() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--action", type=int, help="Action to perform")
+    parser.add_argument('-a', '--action', type=int, help='Action to perform')
+
+    move_bad_sessions()
 
     logger.info(f"Detected {len(get_session_names())} sessions")
 
@@ -85,7 +124,7 @@ async def process() -> None:
 
             if not action.isdigit():
                 logger.warning("Action must be number")
-            elif action not in ["1", "2"]:
+            elif action not in ['1', '2']:
                 logger.warning("Action must be 1 or 2")
             else:
                 action = int(action)
