@@ -1,0 +1,11 @@
+version: '3'
+services:
+  bot:
+    container_name: 'HamsterKombatBot'
+    build:
+      context: .
+    stop_signal: SIGINT
+    restart: unless-stopped
+    command: "python3 main.py -a 2"
+    volumes:
+      - .:/app
