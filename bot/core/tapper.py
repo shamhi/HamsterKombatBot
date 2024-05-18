@@ -343,7 +343,7 @@ class Tapper:
 
                         if settings.AUTO_UPGRADE is True:
                             upgrades = await self.get_upgrades(http_client=http_client)
-                            available_upgrades = [data for data in upgrades if data['isAvailable'] is True]
+                            available_upgrades = [data for data in upgrades if data['isAvailable'] is True and data['isExpired'] is False]
 
                             for upgrade in available_upgrades:
                                 upgrade_id = upgrade['id']
@@ -357,6 +357,7 @@ class Tapper:
                                     status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
                                     if status is True:
                                         earn_on_hour += profit
+                                        balance -= price
                                         logger.success(
                                             f"{self.session_name} | "
                                             f"Successfully upgraded <e>{upgrade_id}</e> to <m>{level}</m> lvl | "
