@@ -80,7 +80,8 @@ class Tapper:
             return access_token
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error}")
-            await asyncio.sleep(delay=3)
+            logger.error(f"{self.session_name} | Sleep for 3 min(180 sec)")
+            await asyncio.sleep(delay=180)
 
     async def get_profile_data(self, http_client: aiohttp.ClientSession) -> dict[str]:
         try:
@@ -94,7 +95,8 @@ class Tapper:
             return profile_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error}")
-            await asyncio.sleep(delay=3)
+            logger.error(f"{self.session_name} | Sleep for 3 min(180 sec)")
+            await asyncio.sleep(delay=180)
 
     async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
         try:
@@ -297,28 +299,40 @@ class Tapper:
                         if settings.AUTO_UPGRADE is True:
                             upgrades = await self.get_upgrades(http_client=http_client)
                             available_upgrades = [data for data in upgrades if data['isAvailable'] is True and data['isExpired'] is False]
-
+                            queue = []
+                        
                             for upgrade in available_upgrades:
                                 upgrade_id = upgrade['id']
                                 level = upgrade['level']
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
+                        
+                                significance = profit /  price
+                        
                                 if balance > price and level <= settings.MAX_LEVEL:
-                                    logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
-                                    await asyncio.sleep(delay=10)
-
-                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+                                    queue.append([upgrade_id, significance, level, price, profit])
+                            
+                            # sort by significance
+                            queue.sort(key=operator.itemgetter(1), reverse=True)
+                        
+                            for upgrade in queue:
+                                logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
+                                await asyncio.sleep(delay=10)
+                            
+                                if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
+                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
+                        
                                     if status is True:
-                                        earn_on_hour += profit
-                                        balance -= price
+                                        earn_on_hour += upgrade[4]
+                                        balance -= upgrade[3]
                                         logger.success(
                                             f"{self.session_name} | "
-                                            f"Successfully upgraded <e>{upgrade_id}</e> to <m>{level}</m> lvl | "
-                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{profit}</g>)")
-
+                                            f"Successfully upgraded <e>{upgrade[0]}</e> to <m>{upgrade[2]}</m> lvl | "
+                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{upgrade[4]}</g>)")
+                            
                                         await asyncio.sleep(delay=1)
-
-                                    continue
+                        
+                                continue
 
                         if available_energy < settings.MIN_AVAILABLE_ENERGY:
                             logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
