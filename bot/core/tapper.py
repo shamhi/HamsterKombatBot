@@ -317,10 +317,10 @@ class Tapper:
                             queue.sort(key=operator.itemgetter(1), reverse=True)
                         
                             for upgrade in queue:
-                                logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
-                                await asyncio.sleep(delay=10)
-                            
                                 if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
+                                    logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
+                                    await asyncio.sleep(delay=5)
+                                    
                                     status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
                         
                                     if status is True:
