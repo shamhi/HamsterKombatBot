@@ -1,4 +1,5 @@
 import asyncio
+import operator
 from time import time
 from random import randint
 from urllib.parse import unquote
