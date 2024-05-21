@@ -139,6 +139,19 @@ class Tapper:
 
             return False
 
+    async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/boosts-for-buy', json={})
+            response.raise_for_status()
+
+            response_json = await response.json()
+            boosts = response_json['boostsForBuy']
+            
+            return boosts
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error}")
+            await asyncio.sleep(delay=3)
+
     async def apply_boost(self, http_client: aiohttp.ClientSession, boost_id: str) -> bool:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-boost',
@@ -276,8 +289,8 @@ class Tapper:
                     total = int(player_data['totalCoins'])
                     earn_on_hour = player_data['earnPassivePerHour']
 
-                    boosts = player_data['boosts']
-                    energy_boost = boosts.get('BoostFullAvailableTaps', {})
+                    boosts = await self.get_boosts(http_client=http_client)
+                    energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
