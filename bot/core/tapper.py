@@ -277,25 +277,25 @@ class Tapper:
                     earn_on_hour = player_data['earnPassivePerHour']
 
                     boosts = player_data['boosts']
-                    energy_boost_time = boosts.get('BoostFullAvailableTaps', {}).get('lastUpgradeAt', 0)
+                    energy_boost = boosts.get('BoostFullAvailableTaps', {})
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
 
-                    if active_turbo is False:
-                        if (settings.APPLY_DAILY_ENERGY is True
+                    if not active_turbo:
+                        if (settings.APPLY_DAILY_ENERGY
                                 and available_energy < settings.MIN_AVAILABLE_ENERGY
-                                and time() - energy_boost_time > 3600):
-                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
+                                and energy_boost.get("cooldownSeconds", 0) == 0
+                                and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
+                            logger.info(f"{self.session_name} | Sleep 5s before applying energy boost")
                             await asyncio.sleep(delay=5)
 
                             status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully apply energy boost")
-
+                            if status:
+                                logger.success(f"{self.session_name} | Successfully applied energy boost")
                                 await asyncio.sleep(delay=1)
-
                             continue
+
 
                         if settings.AUTO_UPGRADE is True:
                             upgrades = await self.get_upgrades(http_client=http_client)
