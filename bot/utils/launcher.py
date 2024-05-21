@@ -60,7 +60,10 @@ def move_bad_sessions() -> None:
 
 
 async def check_sessions(session: Client) -> Client:
-    is_auth = await session.connect()
+    try:
+        is_auth = await session.connect()
+    except:
+        is_auth = False
 
     if is_auth is False:
         with open('sessions/bad_sessions.txt', 'a') as file:
