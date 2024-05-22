@@ -8,7 +8,7 @@ import aiohttp
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
 from pyrogram import Client
-from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered
+from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
 from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
@@ -61,6 +61,11 @@ class Tapper:
                 await self.tg_client.disconnect()
 
             return tg_web_data
+        
+        except FloodWait as e:
+            logger.warning(f"{self.session_name} | FLOOD_WAIT: Sleeping for {e.x} seconds.")
+            await asyncio.sleep(e.x)
+            return await self.get_tg_web_data(proxy)
 
         except InvalidSession as error:
             raise error
