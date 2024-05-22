@@ -14,7 +14,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 from bot.config import settings
 from bot.utils import logger
 from bot.exceptions import InvalidSession
-from .headers import headers
+from .headers import getHeaders
 
 
 class Tapper:
@@ -219,6 +219,8 @@ class Tapper:
         active_turbo = False
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+
+        headers = getHeaders()
 
         async with (aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client):
             if proxy:

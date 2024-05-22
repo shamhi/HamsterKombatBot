@@ -25,8 +25,8 @@
 | **MAX_LEVEL**            | Maximum upgrade level _(eg 20)_                                                          |
 | **APPLY_DAILY_ENERGY**   | Whether to use the daily free energy boost _(True / False)_                              |
 | **APPLY_DAILY_TURBO**    | Whether to use the daily free turbo boost _(True / False)_                               |
-| **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg 50,200)_                                                      |
-| **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg 10,25)_                                        |
+| **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg [50,200])_                                                      |
+| **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg [10,25])_                                        |
 | **USE_PROXY_FROM_FILE**  | Whether to use proxy from the `bot/config/proxies.txt` file (True / False)               |
 
 ## Installation
