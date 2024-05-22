@@ -212,6 +212,7 @@ class Tapper:
             return False
 
     async def run(self, proxy: str | None) -> None:
+        access_token_created_time = 0
         turbo_time = 0
         active_turbo = False
 
@@ -228,14 +229,11 @@ class Tapper:
 
             while True:
                 try:
-                    local_token = local_db[self.session_name]['Token']
-                    if not local_token:
+                    if time() - access_token_created_time >= 1800:
                         tg_web_data = await self.get_tg_web_data(proxy=proxy)
                         access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
                         http_client.headers["Authorization"] = f"Bearer {access_token}"
-
-                        local_db[self.session_name]['Token'] = access_token
 
                         profile_data = await self.get_profile_data(http_client=http_client)
 
@@ -254,9 +252,6 @@ class Tapper:
                         available_energy = profile_data.get('availableTaps', 0)
                         balance = int(profile_data['balanceCoins'])
 
-                        local_db[self.session_name]['Balance'] = balance
-                        local_db[self.session_name]['AvailableEnergy'] = available_energy
-
                         tasks = await self.get_tasks(http_client=http_client)
 
                         daily_task = tasks[-1]
@@ -269,11 +264,6 @@ class Tapper:
                             if status is True:
                                 logger.success(f"{self.session_name} | Successfully get daily reward | "
                                                f"Days: <m>{days}</m> | Reward coins: {rewards[days-1]['rewardCoins']}")
-                    else:
-                        http_client.headers["Authorization"] = f"Bearer {local_token}"
-
-                        balance = local_db[self.session_name]['Balance']
-                        available_energy = local_db[self.session_name]['AvailableEnergy']
 
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
@@ -308,9 +298,6 @@ class Tapper:
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
-
-                    local_db[self.session_name]['Balance'] = balance
-                    local_db[self.session_name]['AvailableEnergy'] = available_energy
 
                     await save_log(
                         db_pool=self.db_pool,
