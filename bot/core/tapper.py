@@ -235,6 +235,8 @@ class Tapper:
 
                         http_client.headers["Authorization"] = f"Bearer {access_token}"
 
+                        access_token_created_time = time()
+
                         profile_data = await self.get_profile_data(http_client=http_client)
 
                         exchange_id = profile_data.get('exchangeId')
