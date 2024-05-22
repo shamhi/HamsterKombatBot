@@ -16,7 +16,7 @@
 | Support tdata / pyrogram .session / telethon .session          |     ✅     |
 
 ## Quick Start 📚
-1. To install libraries on Windows click on `INSTALL(Windows).bat`.
+1. To install libraries on Windows click on `INSTALL.bat`.
 2. To start the bot use `START.bat` (or in console: `python main.py`).
 
 ## Prerequisites
