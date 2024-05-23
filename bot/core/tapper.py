@@ -1,4 +1,5 @@
 import asyncio
+import json
 import operator
 from time import time
 from random import randint
@@ -108,16 +109,18 @@ class Tapper:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/sync',
                                               json={})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+            	response.raise_for_status()
 
-            response_json = await response.json()
-            profile_data = response_json['clickerUser']
+            response_json = json.loads(response_text)
+            profile_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
 
             return profile_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
                          f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
+
 
     async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
         try:
@@ -201,7 +204,12 @@ class Tapper:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
                                               json={'timestamp': time(), 'upgradeId': upgrade_id})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+            	response.raise_for_status()
+
+            response_json = json.loads(response_text)
+            profile_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
+
 
             return True
         except Exception as error:
@@ -232,10 +240,12 @@ class Tapper:
                 url='https://api.hamsterkombat.io/clicker/tap',
                 json={'availableTaps': available_energy, 'count': taps, 'timestamp': time()})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+            	response.raise_for_status()
 
-            response_json = await response.json()
-            player_data = response_json['clickerUser']
+            response_json = json.loads(response_text)
+            player_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
+
 
             return player_data
         except Exception as error:
@@ -374,6 +384,7 @@ class Tapper:
                             queue.sort(key=operator.itemgetter(1), reverse=True)
 
                             for upgrade in queue:
+
                                 if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
                                     logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
                                     await asyncio.sleep(delay=5)
