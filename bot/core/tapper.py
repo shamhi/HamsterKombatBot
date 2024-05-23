@@ -55,9 +55,10 @@ class Tapper:
                         fls = fl.value
 
                         logger.warning(f"{self.session_name} | FloodWait {fl}")
+                        fls *= 2
                         logger.info(f"{self.session_name} | Sleep {fls}s")
 
-                        await asyncio.sleep(fls+3)
+                        await asyncio.sleep(fls)
 
                 web_view = await self.tg_client.invoke(RequestWebView(
                     peer=peer,
