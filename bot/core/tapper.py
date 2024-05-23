@@ -8,9 +8,8 @@ import aiohttp
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
 from pyrogram import Client
-from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered
+from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
 from pyrogram.raw.functions.messages import RequestWebView
-from pyrogram.errors import FloodWait
 
 from bot.config import settings
 from bot.utils import logger
@@ -23,7 +22,7 @@ class Tapper:
         self.session_name = tg_client.name
         self.tg_client = tg_client
 
-    async def get_tg_web_data(self, proxy: str | None) -> str | None:
+    async def get_tg_web_data(self, proxy: str | None) -> str:
         if proxy:
             proxy = Proxy.from_str(proxy)
             proxy_dict = dict(
@@ -243,6 +242,9 @@ class Tapper:
                 try:
                     if time() - access_token_created_time >= 3600:
                         access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
+
+                        if not access_token:
+                            continue
 
                         http_client.headers["Authorization"] = f"Bearer {access_token}"
 
