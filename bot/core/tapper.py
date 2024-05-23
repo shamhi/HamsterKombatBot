@@ -44,17 +44,17 @@ class Tapper:
                 except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
                     raise InvalidSession(self.session_name)
 
-            try:
-                peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
-            except FloodWait as fl:
-                fls = fl.value
+            while True:
+                try:
+                    peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
+                    break
+                except FloodWait as fl:
+                    fls = fl.value
 
-                logger.warning(f"{self.session_name} | FloodWait {fl}")
-                logger.info(f"{self.session_name} | Sleep {fls}s")
+                    logger.warning(f"{self.session_name} | FloodWait {fl}")
+                    logger.info(f"{self.session_name} | Sleep {fls}s")
 
-                await asyncio.sleep(fls+3)
-
-                peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
+                    await asyncio.sleep(fls+3)
 
             web_view = await self.tg_client.invoke(RequestWebView(
                 peer=peer,
