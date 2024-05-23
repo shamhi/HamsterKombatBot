@@ -13,6 +13,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
 from bot.utils import logger
+from bot.utils.scripts import get_auth_key, save_auth_key
 from bot.exceptions import InvalidSession
 from .headers import headers
 
@@ -37,49 +38,53 @@ class Tapper:
 
         self.tg_client.proxy = proxy_dict
 
-        try:
-            if not self.tg_client.is_connected:
-                try:
-                    await self.tg_client.connect()
-                except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
-                    raise InvalidSession(self.session_name)
+        tg_web_data = get_auth_key(self.tg_client.name)
+        if not tg_web_data:
+            try:
+                if not self.tg_client.is_connected:
+                    try:
+                        await self.tg_client.connect()
+                    except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
+                        raise InvalidSession(self.session_name)
 
-            while True:
-                try:
-                    peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
-                    break
-                except FloodWait as fl:
-                    fls = fl.value
+                while True:
+                    try:
+                        peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
+                        break
+                    except FloodWait as fl:
+                        fls = fl.value
 
-                    logger.warning(f"{self.session_name} | FloodWait {fl}")
-                    logger.info(f"{self.session_name} | Sleep {fls}s")
+                        logger.warning(f"{self.session_name} | FloodWait {fl}")
+                        logger.info(f"{self.session_name} | Sleep {fls}s")
 
-                    await asyncio.sleep(fls+3)
+                        await asyncio.sleep(fls+3)
 
-            web_view = await self.tg_client.invoke(RequestWebView(
-                peer=peer,
-                bot=peer,
-                platform='android',
-                from_bot_menu=False,
-                url='https://hamsterkombat.io/'
-            ))
+                web_view = await self.tg_client.invoke(RequestWebView(
+                    peer=peer,
+                    bot=peer,
+                    platform='android',
+                    from_bot_menu=False,
+                    url='https://hamsterkombat.io/'
+                ))
 
-            auth_url = web_view.url
-            tg_web_data = unquote(
-                string=unquote(
-                    string=auth_url.split('tgWebAppData=', maxsplit=1)[1].split('&tgWebAppVersion', maxsplit=1)[0]))
+                auth_url = web_view.url
+                tg_web_data = unquote(
+                    string=unquote(
+                        string=auth_url.split('tgWebAppData=', maxsplit=1)[1].split('&tgWebAppVersion', maxsplit=1)[0]))
 
-            if self.tg_client.is_connected:
-                await self.tg_client.disconnect()
+                save_auth_key(self.tg_client.name, tg_web_data)
 
-            return tg_web_data
+                if self.tg_client.is_connected:
+                    await self.tg_client.disconnect()
 
-        except InvalidSession as error:
-            raise error
+            except InvalidSession as error:
+                raise error
 
-        except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
-            await asyncio.sleep(delay=3)
+            except Exception as error:
+                logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
+                await asyncio.sleep(delay=3)
+
+        return tg_web_data
 
     async def login(self, http_client: aiohttp.ClientSession, tg_web_data: str) -> str:
         try:
