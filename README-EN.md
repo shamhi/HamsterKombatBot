@@ -15,6 +15,20 @@
 | Random number of clicks per request                            |     ✅     |
 | Support tdata / pyrogram .session / telethon .session          |     ✅     |
 
+## Quick Start 📚
+1. To install libraries on Windows click on `INSTALL.bat`.
+2. To start the bot use `START.bat` (or in console: `python main.py`).
+
+## Prerequisites
+Before you begin, ensure you have the following installed:
+- [Python](https://www.python.org/downloads/) version 3.12
+- [Git](https://git-scm.com/downloads)
+
+## Obtaining API Keys
+1. Go to [my.telegram.org](https://my.telegram.org) and log in using your phone number.
+2. Select "API development tools" and fill out the form to register a new application.
+3. Note down the `api_id` and `api_hash` provided after registering your application.
+
 ## [Settings](https://github.com/shamhi/HamsterKombatBot/blob/main/.env-example)
 | Настройка                | Описание                                                                                 |
 |--------------------------|------------------------------------------------------------------------------------------|
@@ -28,6 +42,7 @@
 | **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg 50,200)_                                                      |
 | **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg 10,25)_                                        |
 | **USE_PROXY_FROM_FILE**  | Whether to use proxy from the `bot/config/proxies.txt` file (True / False)               |
+
 
 ## Installation
 You can download [**Repository**](https://github.com/shamhi/HamsterKombatBot) by cloning it to your system and installing the necessary dependencies:
