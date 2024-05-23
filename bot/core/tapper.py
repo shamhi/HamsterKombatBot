@@ -85,6 +85,7 @@ class Tapper:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/auth/auth-by-telegram-webapp',
                                               json={"initDataRaw": tg_web_data, "fingerprint": {}})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -92,13 +93,15 @@ class Tapper:
 
             return access_token
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def get_profile_data(self, http_client: aiohttp.ClientSession) -> dict[str]:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/sync',
                                               json={})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -106,13 +109,15 @@ class Tapper:
 
             return profile_data
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/list-tasks',
                                               json={})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -120,18 +125,21 @@ class Tapper:
 
             return tasks
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Tasks: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Tasks: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def select_exchange(self, http_client: aiohttp.ClientSession, exchange_id: str) -> bool:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/select-exchange',
                                               json={'exchangeId': exchange_id})
+            response_text = await response.text()
             response.raise_for_status()
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Select Exchange: {error}")
+            logger.error(f"{self.session_name} | Unknown error while Select Exchange: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
             return False
@@ -140,11 +148,13 @@ class Tapper:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/check-task',
                                               json={'taskId': "streak_days"})
+            response_text = await response.text()
             response.raise_for_status()
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Daily: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Daily: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
             return False
@@ -153,11 +163,13 @@ class Tapper:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-boost',
                                               json={'timestamp': time(), 'boostId': boost_id})
+            response_text = await response.text()
             response.raise_for_status()
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Apply {boost_id} Boost: {error}")
+            logger.error(f"{self.session_name} | Unknown error while Apply {boost_id} Boost: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
             return False
@@ -166,6 +178,7 @@ class Tapper:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/upgrades-for-buy',
                                               json={})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -173,18 +186,21 @@ class Tapper:
 
             return upgrades
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> bool:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
                                               json={'timestamp': time(), 'upgradeId': upgrade_id})
+            response_text = await response.text()
             response.raise_for_status()
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error}")
+            logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
             return False
@@ -192,6 +208,7 @@ class Tapper:
     async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/boosts-for-buy', json={})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -199,7 +216,8 @@ class Tapper:
 
             return boosts
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error}")
+            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def send_taps(self, http_client: aiohttp.ClientSession, available_energy: int, taps: int) -> dict[str]:
@@ -207,6 +225,7 @@ class Tapper:
             response = await http_client.post(
                 url='https://api.hamsterkombat.io/clicker/tap',
                 json={'availableTaps': available_energy, 'count': taps, 'timestamp': time()})
+            response_text = await response.text()
             response.raise_for_status()
 
             response_json = await response.json()
@@ -214,7 +233,8 @@ class Tapper:
 
             return player_data
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Tapping: {error}")
+            logger.error(f"{self.session_name} | Unknown error while Tapping: {error} | "
+                         f"Response text: {response_text}")
             await asyncio.sleep(delay=3)
 
     async def check_proxy(self, http_client: aiohttp.ClientSession, proxy: Proxy) -> None:
