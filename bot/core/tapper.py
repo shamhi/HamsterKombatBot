@@ -1,3 +1,4 @@
+import json
 import asyncio
 import operator
 from time import time
@@ -116,8 +117,8 @@ class Tapper:
             if response.status != 422:
                 response.raise_for_status()
 
-            response_json = await response.json()
-            profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser')
+            response_json = json.loads(response_text)
+            profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
 
             return profile_data
         except Exception as error:
@@ -241,8 +242,8 @@ class Tapper:
             if response.status != 422:
                 response.raise_for_status()
 
-            response_json = await response.json()
-            player_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser')
+            response_json = json.loads(response_text)
+            player_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
 
             return player_data
         except Exception as error:
@@ -301,7 +302,7 @@ class Tapper:
                                     f"Earn every hour: <y>{earn_on_hour}</y>")
 
                         available_energy = profile_data.get('availableTaps', 0)
-                        balance = int(profile_data['balanceCoins'])
+                        balance = int(profile_data.get('balanceCoins', 0))
 
                         tasks = await self.get_tasks(http_client=http_client)
 
@@ -332,10 +333,10 @@ class Tapper:
                         continue
 
                     available_energy = player_data.get('availableTaps', 0)
-                    new_balance = int(player_data['balanceCoins'])
+                    new_balance = int(player_data.get('balanceCoins', 0))
                     calc_taps = new_balance - balance
                     balance = new_balance
-                    total = int(player_data['totalCoins'])
+                    total = int(player_data.get('totalCoins', 0))
                     earn_on_hour = player_data['earnPassivePerHour']
 
                     boosts = await self.get_boosts(http_client=http_client)
