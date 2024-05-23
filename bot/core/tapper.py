@@ -113,10 +113,11 @@ class Tapper:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/sync',
                                               json={})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+                response.raise_for_status()
 
             response_json = await response.json()
-            profile_data = response_json['clickerUser']
+            profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser')
 
             return profile_data
         except Exception as error:
@@ -233,14 +234,15 @@ class Tapper:
 
     async def send_taps(self, http_client: aiohttp.ClientSession, available_energy: int, taps: int) -> dict[str]:
         try:
-            response = await http_client.post(
-                url='https://api.hamsterkombat.io/clicker/tap',
-                json={'availableTaps': available_energy, 'count': taps, 'timestamp': time()})
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/tap',
+                                              json={'availableTaps': available_energy, 'count': taps,
+                                                    'timestamp': time()})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+                response.raise_for_status()
 
             response_json = await response.json()
-            player_data = response_json['clickerUser']
+            player_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser')
 
             return player_data
         except Exception as error:
