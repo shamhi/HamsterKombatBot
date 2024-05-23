@@ -278,6 +278,9 @@ class Tapper:
 
                         profile_data = await self.get_profile_data(http_client=http_client)
 
+                        if not profile_data:
+                            continue
+
                         exchange_id = profile_data.get('exchangeId')
                         if not exchange_id:
                             status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
