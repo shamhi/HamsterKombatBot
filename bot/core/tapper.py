@@ -203,7 +203,8 @@ class Tapper:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
                                               json={'timestamp': time(), 'upgradeId': upgrade_id})
             response_text = await response.text()
-            response.raise_for_status()
+            if response.status != 422:
+                response.raise_for_status()
 
             return True
         except Exception as error:
