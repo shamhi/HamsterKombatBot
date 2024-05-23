@@ -20,5 +20,5 @@ def save_auth_key(session_name: str, auth_key: str) -> None:
         auth_keys = {}
 
     auth_keys[session_name] = auth_key
-    with open('auth_keys.json', 'a') as file:
+    with open('auth_keys.json', 'w') as file:
         json.dump(auth_keys, file, indent=4, ensure_ascii=False)
