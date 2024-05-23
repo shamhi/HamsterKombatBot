@@ -47,6 +47,11 @@ class Tapper:
                     except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
                         raise InvalidSession(self.session_name)
 
+                dialogs = self.tg_client.get_dialogs()
+                async for dialog in dialogs:
+                    if dialog.chat and dialog.chat.username and dialog.chat.username == 'hamster_kombat_bot':
+                        break
+
                 while True:
                     try:
                         peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
