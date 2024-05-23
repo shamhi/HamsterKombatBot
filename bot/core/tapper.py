@@ -10,6 +10,7 @@ from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered
 from pyrogram.raw.functions.messages import RequestWebView
+from pyrogram.errors import FloodWait
 
 from bot.config import settings
 from bot.utils import logger
@@ -22,7 +23,7 @@ class Tapper:
         self.session_name = tg_client.name
         self.tg_client = tg_client
 
-    async def get_tg_web_data(self, proxy: str | None) -> str:
+    async def get_tg_web_data(self, proxy: str | None) -> str | None:
         if proxy:
             proxy = Proxy.from_str(proxy)
             proxy_dict = dict(
@@ -44,9 +45,21 @@ class Tapper:
                 except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
                     raise InvalidSession(self.session_name)
 
+            try:
+                peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
+            except FloodWait as fl:
+                fls = fl.value
+
+                logger.warning(f"{self.session_name} | FloodWait {fl}")
+                logger.info(f"{self.session_name} | Sleep {fls}s")
+
+                await asyncio.sleep(fls+3)
+
+                peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
+
             web_view = await self.tg_client.invoke(RequestWebView(
-                peer=await self.tg_client.resolve_peer('hamster_kombat_bot'),
-                bot=await self.tg_client.resolve_peer('hamster_kombat_bot'),
+                peer=peer,
+                bot=peer,
                 platform='android',
                 from_bot_menu=False,
                 url='https://hamsterkombat.io/'
@@ -220,18 +233,18 @@ class Tapper:
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
 
-        async with (aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client):
+        async with aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client:
             if proxy:
                 await self.check_proxy(http_client=http_client, proxy=proxy)
+
+            tg_web_data = await self.get_tg_web_data(proxy=proxy)
 
             while True:
                 try:
                     if time() - access_token_created_time >= 3600:
-                        tg_web_data = await self.get_tg_web_data(proxy=proxy)
                         access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
                         http_client.headers["Authorization"] = f"Bearer {access_token}"
-                        headers["Authorization"] = f"Bearer {access_token}"
 
                         access_token_created_time = time()
 
