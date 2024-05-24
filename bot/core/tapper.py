@@ -11,6 +11,8 @@ from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
 from pyrogram.raw.functions.messages import RequestWebView
+from pyrogram.raw.types.input_peer_user import InputPeerUser 
+# from pyrogram.raw.all import 
 
 from bot.config import settings
 from bot.utils import logger
@@ -48,20 +50,9 @@ class Tapper:
                         await self.tg_client.connect()
                     except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
                         raise InvalidSession(self.session_name)
-
-                while True:
-                    try:
-                        peer = await self.tg_client.resolve_peer('hamster_kombat_bot')
-                        break
-                    except FloodWait as fl:
-                        fls = fl.value
-
-                        logger.warning(f"{self.session_name} | FloodWait {fl}")
-                        fls *= 2
-                        logger.info(f"{self.session_name} | Sleep {fls}s")
-
-                        await asyncio.sleep(fls)
-
+                
+                peer = InputPeerUser(7018368922, 5706647964587022470)
+                
                 web_view = await self.tg_client.invoke(RequestWebView(
                     peer=peer,
                     bot=peer,
@@ -84,7 +75,7 @@ class Tapper:
                 raise error
 
             except Exception as error:
-                logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
+                logger.error(f"{self.session_name} | Unknown error during Authorization: {error.with_traceback(None)}")
                 await asyncio.sleep(delay=3)
 
         return tg_web_data
@@ -336,7 +327,10 @@ class Tapper:
                         if time() - turbo_time > 20:
                             active_turbo = False
                             turbo_time = 0
-
+                    if not "available_energy" in locals():
+                        logger.error(f"{self.session_name} | Detected failed login, can not continue further. Did you log out from all your devices? Please report your logs to https://github.com/shamhi/HamsterKombatBot/pull/72.")
+                        input("Press Enter to exit...")
+                        exit(1)
                     player_data = await self.send_taps(http_client=http_client,
                                                        available_energy=available_energy,
                                                        taps=taps)
@@ -364,7 +358,7 @@ class Tapper:
 
                     if active_turbo is False:
                         if (settings.APPLY_DAILY_ENERGY is True
-                                and available_energy < settings.MIN_AVAILABLE_ENERGY
+                                and available_energy <= settings.MIN_AVAILABLE_ENERGY
                                 and energy_boost.get("cooldownSeconds", 0) == 0
                                 and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
                             logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
@@ -402,7 +396,7 @@ class Tapper:
                                 best_upgrade = max(queue, key=lambda x: x[1])
                                 time_to_be_earned = (best_upgrade[3] - balance) / PLAYER_DATA_HOURLY_EARNINGS
                             if self.upgrade_cooldown < time():
-                                logger.info(f"{self.session_name} | Waiting to upgrade: {best_upgrade[0]} for <y>{best_upgrade[3]}</y> money. It will be earned in <y>{time_to_be_earned * 60 if time_to_be_earned > 0 else 0}</y> minutes.")
+                                logger.info(f"{self.session_name} | Waiting to upgrade: {best_upgrade[0]} for <y>{best_upgrade[3]}</y> money. It will be earned in <y>{round(time_to_be_earned * 60 if time_to_be_earned > 0 else 0)}</y> minutes.")
                                 if balance >= best_upgrade[3]:
                             
 
@@ -424,7 +418,7 @@ class Tapper:
 
                                     continue
 
-                        if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                        if available_energy <= settings.MIN_AVAILABLE_ENERGY:
                             logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
                             logger.info(f"{self.session_name} | Sleep {settings.SLEEP_BY_MIN_ENERGY}s")
 
