@@ -21,6 +21,7 @@ from .headers import headers
 
 class Tapper:
     def __init__(self, tg_client: Client):
+        self.upgrade_cooldown = 0
         self.session_name = tg_client.name
         self.tg_client = tg_client
 
@@ -110,10 +111,10 @@ class Tapper:
                                               json={})
             response_text = await response.text()
             if response.status != 422:
-            	response.raise_for_status()
+                response.raise_for_status()
 
             response_json = json.loads(response_text)
-            profile_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
+            profile_data = response_json.get('clickerUser', None) or response_json.get("found", {}).get("clickerUser", {})
 
             return profile_data
         except Exception as error:
@@ -200,15 +201,24 @@ class Tapper:
             await asyncio.sleep(delay=3)
 
     async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> bool:
+        if self.upgrade_cooldown > time():
+
+            return False
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
                                               json={'timestamp': time(), 'upgradeId': upgrade_id})
             response_text = await response.text()
+            if response.status == 400:
+                response_json = json.loads(response_text)
+                if response_json["error_code"] == "UPGRADE_COOLDOWN":
+                    self.upgrade_cooldown = time() + 5 + response_json["cooldownSeconds"]
+                    logger.info(f"{self.session_name} | Upgrade Cooldown. Waiting: {round(self.upgrade_cooldown - time())}s")
+                    return False
             if response.status != 422:
-            	response.raise_for_status()
+                response.raise_for_status()
 
             response_json = json.loads(response_text)
-            profile_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
+            profile_data = response_json.get('clickerUser', None) or response_json.get("found", {}).get("clickerUser", {})
 
 
             return True
@@ -241,10 +251,10 @@ class Tapper:
                 json={'availableTaps': available_energy, 'count': taps, 'timestamp': time()})
             response_text = await response.text()
             if response.status != 422:
-            	response.raise_for_status()
+                response.raise_for_status()
 
             response_json = json.loads(response_text)
-            player_data = response_json.get('clickerUser', None) or response_json.get("found").get("clickerUser")
+            player_data = response_json.get('clickerUser', None) or response_json.get("found", {}).get("clickerUser", {})
 
 
             return player_data
@@ -335,16 +345,21 @@ class Tapper:
                         continue
 
                     available_energy = player_data.get('availableTaps', 0)
-                    new_balance = int(player_data['balanceCoins'])
+                    new_balance = int(player_data.get('balanceCoins', 0))
                     calc_taps = new_balance - balance
                     balance = new_balance
-                    total = int(player_data['totalCoins'])
-                    earn_on_hour = player_data['earnPassivePerHour']
+                    total = int(player_data.get('totalCoins', 0))
+                    earn_on_hour = player_data.get('earnPassivePerHour',0)
+                    MAX_EARN_FOR_UPGRADE_HOURS = settings.MAX_EARN_FOR_UPGRADE_HOURS
+                    
+                    PLAYER_DATA_TAPS_RECOVER_PER_SEC = player_data.get('tapsRecoverPerSec', 0)
+                    PLAYER_DATA_EARN_PASSIVE_PER_HOUR = player_data.get('earnPassivePerHour', 0)
+                    PLAYER_DATA_HOURLY_EARNINGS = 3600 * PLAYER_DATA_TAPS_RECOVER_PER_SEC + PLAYER_DATA_EARN_PASSIVE_PER_HOUR
 
                     boosts = await self.get_boosts(http_client=http_client)
                     energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
-                    logger.success(f"{self.session_name} | Successful tapped! | "
+                    logger.success(f"{self.session_name} | Successfully tapped! | "
                                    f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
 
                     if active_turbo is False:
@@ -377,31 +392,37 @@ class Tapper:
 
                                 significance = profit / price
 
-                                if balance > price and level <= settings.MAX_LEVEL:
+                                if level <= settings.MAX_LEVEL:
                                     queue.append([upgrade_id, significance, level, price, profit])
+                            best_upgrade = max(queue, key=lambda x: x[1])
+                            
+                            time_to_be_earned = (best_upgrade[3] - balance) / PLAYER_DATA_HOURLY_EARNINGS
+                            while time_to_be_earned > MAX_EARN_FOR_UPGRADE_HOURS:
+                                queue.remove(best_upgrade)
+                                best_upgrade = max(queue, key=lambda x: x[1])
+                                time_to_be_earned = (best_upgrade[3] - balance) / PLAYER_DATA_HOURLY_EARNINGS
+                            if self.upgrade_cooldown < time():
+                                logger.info(f"{self.session_name} | Waiting to upgrade: {best_upgrade[0]} for <y>{best_upgrade[3]}</y> money. It will be earned in <y>{time_to_be_earned * 60 if time_to_be_earned > 0 else 0}</y> minutes.")
+                                if balance >= best_upgrade[3]:
+                            
 
-                            # sort by significance
-                            queue.sort(key=operator.itemgetter(1), reverse=True)
+                                    if balance > best_upgrade[3] and best_upgrade[2] <= settings.MAX_LEVEL:
+                                        logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{best_upgrade[0]}</e>")
+                                        await asyncio.sleep(delay=5)
 
-                            for upgrade in queue:
+                                        status = await self.buy_upgrade(http_client=http_client, upgrade_id=best_upgrade[0])
 
-                                if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
-                                    logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
-                                    await asyncio.sleep(delay=5)
+                                        if status is True:
+                                            earn_on_hour += best_upgrade[4]
+                                            balance -= best_upgrade[3]
+                                            logger.success(
+                                                f"{self.session_name} | "
+                                                f"Successfully upgraded <e>{best_upgrade[0]}</e> to <m>{best_upgrade[2]}</m> lvl | "
+                                                f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{best_upgrade[4]}</g>)")
 
-                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
+                                            await asyncio.sleep(delay=1)
 
-                                    if status is True:
-                                        earn_on_hour += upgrade[4]
-                                        balance -= upgrade[3]
-                                        logger.success(
-                                            f"{self.session_name} | "
-                                            f"Successfully upgraded <e>{upgrade[0]}</e> to <m>{upgrade[2]}</m> lvl | "
-                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{upgrade[4]}</g>)")
-
-                                        await asyncio.sleep(delay=1)
-
-                                continue
+                                    continue
 
                         if available_energy < settings.MIN_AVAILABLE_ENERGY:
                             logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
