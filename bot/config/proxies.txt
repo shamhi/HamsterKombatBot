@@ -1,5 +1,19 @@
-type://user:pass@ip:port
-type://user:pass:ip:port
-type://ip:port:user:pass
-type://ip:port@user:pass
-type://ip:port
+https://51.161.50.166:3128
+
+
+
+11. They would have gotten married if she had not left him.
+12. If I lived nearer, I would not go by bus.
+13. Mary's at Peter's party. If you go, you'll see her.
+14. Don't worry. My dog is very sociable. It wouldn't bite you if you came into my house.
+15. His car broke down in the middle of the highway. If he had taken it to the garage before the journey, it wouldn't have broken down.
+16. He does nothing but work all the time. He would feel better if he went out from time to time.
+17. She left the front door open. If she had closed it, the dog wouldn't have run away.
+18. Sally drank a lot at the party. She wouldn't have been sick all over my car's back seats if she hadn't drunk so much.
+19. He knows very few people in this town. He wouldn't stay at home most of the time watching TV if he had someone to go out with.
+20. I can't cook at all. If I could cook, I would invite friends for dinner at home.
+21. You see Tom at work every day, don't you? If you see him tomorrow, tell him what has happened.
+22. That dress is so beautiful! You would look gorgeous at the reception if you wore it.
+23. Mary wants to be healthy. She wouldn't smoke so much if she worried as much about her health as she says.
+24. I'm sorry I shouted at my friend. He wouldn't get angry with me if I hadn't been so rude.
+25. I hope he phones me again. If he rings me up, I will apologize.

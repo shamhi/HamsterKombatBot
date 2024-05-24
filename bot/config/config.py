@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SLEEP_BY_MIN_ENERGY: int = 200
 
     ADD_TAPS_ON_TURBO: int = 2500
-
+    MAX_EARN_FOR_UPGRADE_HOURS: int = 2
     AUTO_UPGRADE: bool = True
     MAX_LEVEL: int = 20
 
@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     RANDOM_TAPS_COUNT: list[int] = [50, 200]
     SLEEP_BETWEEN_TAP: list[int] = [10, 25]
+
+    WAIT_SECONDS_BEFORE_UPGRADE: float = 5
 
     USE_PROXY_FROM_FILE: bool = False
 
