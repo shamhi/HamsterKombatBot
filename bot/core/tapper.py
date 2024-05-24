@@ -9,7 +9,7 @@ import aiohttp
 
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
-from pyrogram import Clients
+from pyrogram import Client
 from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
 from pyrogram.raw.functions.messages import RequestWebView
 from pyrogram.raw.types.input_peer_user import InputPeerUser 
