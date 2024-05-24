@@ -54,6 +54,7 @@ class Tapper:
                         await self.tg_client.connect()
                     except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
                         raise InvalidSession(self.session_name)
+<<<<<<< HEAD
                 dialogs = self.tg_client.get_dialogs()
                 async for dialog in dialogs:
                     if dialog.chat and dialog.chat.username and dialog.chat.username == 'hamster_kombat_bot':
@@ -71,6 +72,11 @@ class Tapper:
                         logger.info(f"{self.session_name} | Sleep {fls}s")
 
                         await asyncio.sleep(fls)
+=======
+                
+                peer = InputPeerUser(7018368922, 5706647964587022470)
+                
+>>>>>>> b5db45729a5fa49dbfbe97709f6bd2928d1c9392
                 web_view = await self.tg_client.invoke(RequestWebView(
                     peer=peer,
                     bot=peer,
@@ -363,7 +369,11 @@ class Tapper:
                     total = int(player_data.get('totalCoins', 0))
                     earn_on_hour = player_data.get('earnPassivePerHour',0)
                     MAX_EARN_FOR_UPGRADE_HOURS = settings.MAX_EARN_FOR_UPGRADE_HOURS
+<<<<<<< HEAD
                     TIME_TO_WAIT_BEFORE_UPGRADE = settings.WAIT_SECONDS_BEFORE_UPGRADE
+=======
+                    
+>>>>>>> b5db45729a5fa49dbfbe97709f6bd2928d1c9392
                     PLAYER_DATA_TAPS_RECOVER_PER_SEC = player_data.get('tapsRecoverPerSec', 0)
                     PLAYER_DATA_EARN_PASSIVE_PER_HOUR = player_data.get('earnPassivePerHour', 0)
                     PLAYER_DATA_HOURLY_EARNINGS = 3600 * PLAYER_DATA_TAPS_RECOVER_PER_SEC + PLAYER_DATA_EARN_PASSIVE_PER_HOUR
@@ -419,8 +429,13 @@ class Tapper:
                             
 
                                     if balance > best_upgrade[3] and best_upgrade[2] <= settings.MAX_LEVEL:
+<<<<<<< HEAD
                                         logger.info(f"{self.session_name} | Sleep {TIME_TO_WAIT_BEFORE_UPGRADE}s before upgrade <e>{best_upgrade[0]}</e>")
                                         await asyncio.sleep(delay=TIME_TO_WAIT_BEFORE_UPGRADE)
+=======
+                                        logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{best_upgrade[0]}</e>")
+                                        await asyncio.sleep(delay=5)
+>>>>>>> b5db45729a5fa49dbfbe97709f6bd2928d1c9392
 
                                         status = await self.buy_upgrade(http_client=http_client, upgrade_id=best_upgrade[0])
 
