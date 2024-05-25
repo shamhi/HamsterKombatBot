@@ -373,7 +373,7 @@ class Tapper:
                             upgrades = await self.get_upgrades(http_client=http_client)
 
                             available_upgrades = [data for data in upgrades if
-                                                  data['isAvailable'] is True and data['isExpired'] is False]
+                                                  data['isAvailable'] is True and data['isExpired'] is False and data.get('cooldownSeconds', 0) == 0]
 
                             queue = []
 
