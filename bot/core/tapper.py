@@ -372,11 +372,15 @@ class Tapper:
                         if settings.AUTO_UPGRADE is True:
                             upgrades = await self.get_upgrades(http_client=http_client)
 
-                            available_upgrades = [data for data in upgrades if
-                                                  data['isAvailable'] is True
-                                                  and data['isExpired'] is False
-                                                  and data.get('cooldownSeconds', 0) == 0
-                                                  and data.get('maxLevel', data['level']) >= data['level']]
+                            available_upgrades = [
+                                data for data in upgrades
+                                if data['isAvailable'] is True
+                                and data['isExpired'] is False
+                                and data.get('cooldownSeconds', 0) == 0
+                                and data.get('maxLevel', data['level']) >= data['level']
+                                and (data.get('condition') is None
+                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                            ]
 
                             queue = []
 
