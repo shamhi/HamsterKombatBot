@@ -282,6 +282,7 @@ class Tapper:
         access_token_created_time = 0
         turbo_time = 0
         active_turbo = False
+        errors_count = 0
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
 
@@ -298,10 +299,16 @@ class Tapper:
 
             while True:
                 try:
+                    if errors_count > 5:
+                        logger.info(f"{self.session_name} | Next sessions pack")
+
+                        return
+
                     if time() - access_token_created_time >= 1800:
                         access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
                         if not access_token:
+                            errors_count += 1
                             continue
 
                         http_client.headers["Authorization"] = f"Bearer {access_token}"
@@ -311,6 +318,7 @@ class Tapper:
                         profile_data = await self.get_profile_data(http_client=http_client)
 
                         if not profile_data:
+                            errors_count += 1
                             continue
 
                         exchange_id = profile_data.get('exchangeId')
@@ -354,6 +362,7 @@ class Tapper:
                                                        taps=taps)
 
                     if not player_data:
+                        errors_count += 1
                         await save_log(
                             db_pool=self.db_pool,
                             phone=self.user_data.phone_number,
