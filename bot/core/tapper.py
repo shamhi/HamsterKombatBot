@@ -373,7 +373,10 @@ class Tapper:
                             upgrades = await self.get_upgrades(http_client=http_client)
 
                             available_upgrades = [data for data in upgrades if
-                                                  data['isAvailable'] is True and data['isExpired'] is False and data.get('cooldownSeconds', 0) == 0]
+                                                  data['isAvailable'] is True
+                                                  and data['isExpired'] is False
+                                                  and data.get('cooldownSeconds', 0) == 0
+                                                  and data.get('maxLevel', data['level']) >= data['level']]
 
                             queue = []
 
@@ -383,7 +386,7 @@ class Tapper:
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                significance = profit / price
+                                significance = profit / price if price > 0 else 0
 
                                 if balance > price and level <= settings.MAX_LEVEL:
                                     queue.append([upgrade_id, significance, level, price, profit])
