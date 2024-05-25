@@ -22,7 +22,6 @@ from bot.exceptions import InvalidSession
 from db.functions import get_user_proxy, get_user_agent, save_log
 from .headers import headers
 
-
 local_db = {}
 
 
@@ -112,7 +111,7 @@ class Tapper:
             return access_token
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def get_profile_data(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -130,7 +129,7 @@ class Tapper:
             return profile_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -147,7 +146,7 @@ class Tapper:
             return tasks
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Tasks: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def select_exchange(self, http_client: aiohttp.ClientSession, exchange_id: str) -> bool:
@@ -161,7 +160,7 @@ class Tapper:
             return True
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while Select Exchange: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -177,7 +176,7 @@ class Tapper:
             return True
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Daily: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -193,7 +192,7 @@ class Tapper:
             return True
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while Apply {boost_id} Boost: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -212,7 +211,7 @@ class Tapper:
             return upgrades
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> bool:
@@ -227,7 +226,7 @@ class Tapper:
             return True
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -245,7 +244,7 @@ class Tapper:
             return boosts
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def send_taps(self, http_client: aiohttp.ClientSession, available_energy: int, taps: int) -> dict[str]:
@@ -264,7 +263,7 @@ class Tapper:
             return player_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while Tapping: {error} | "
-                         f"Response text: {escape_html(response_text)}")
+                         f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
     async def check_proxy(self, http_client: aiohttp.ClientSession, proxy: Proxy) -> bool:
@@ -409,8 +408,15 @@ class Tapper:
                         if settings.AUTO_UPGRADE is True:
                             upgrades = await self.get_upgrades(http_client=http_client)
 
-                            available_upgrades = [data for data in upgrades if
-                                                  data['isAvailable'] is True and data['isExpired'] is False]
+                            available_upgrades = [
+                                data for data in upgrades
+                                if data['isAvailable'] is True
+                                and data['isExpired'] is False
+                                and data.get('cooldownSeconds', 0) == 0
+                                and data.get('maxLevel', data['level']) >= data['level']
+                                and (data.get('condition') is None
+                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                            ]
 
                             queue = []
 
