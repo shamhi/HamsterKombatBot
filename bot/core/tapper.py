@@ -299,9 +299,8 @@ class Tapper:
 
             while True:
                 try:
-                    if errors_count > 5:
-                        logger.info(f"{self.session_name} | Next sessions pack")
-
+                    if errors_count > 10:
+                        logger.info(f"{self.session_name} | Errors count: <r>{errors_count}</r> | Next session pack")
                         return
 
                     if time() - access_token_created_time >= 1800:
