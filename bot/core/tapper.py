@@ -480,6 +480,14 @@ class Tapper:
                     logger.error(f"{self.session_name} | Unknown error: {error}")
                     await asyncio.sleep(delay=3)
 
+                    errors_count += 1
+                    await save_log(
+                        db_pool=self.db_pool,
+                        phone=self.user_data.phone_number,
+                        status="ERROR",
+                        amount=balance,
+                    )
+
                 else:
                     sleep_between_clicks = randint(a=settings.SLEEP_BETWEEN_TAP[0], b=settings.SLEEP_BETWEEN_TAP[1])
 
