@@ -214,7 +214,7 @@ class Tapper:
                          f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
-    async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> bool:
+    async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> tuple[bool, dict[str]]:
         response_text = ''
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
@@ -223,13 +223,16 @@ class Tapper:
             if response.status != 422:
                 response.raise_for_status()
 
-            return True
+            response_json = await response.json()
+            upgrades = response_json['upgradesForBuy']
+
+            return True, upgrades
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error} | "
                          f"Response text: {escape_html(response_text[:128])}...")
             await asyncio.sleep(delay=3)
 
-            return False
+            return False, {}
 
     async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
         response_text = ''
@@ -314,11 +317,19 @@ class Tapper:
 
                         access_token_created_time = time()
 
+                        await http_client.post(url='https://api.hamsterkombat.io/auth/me-telegram', json={})
+                        await http_client.post(url='https://api.hamsterkombat.io/clicker/config', json={})
+
                         profile_data = await self.get_profile_data(http_client=http_client)
 
                         if not profile_data:
                             errors_count += 1
                             continue
+
+                        upgrades = await self.get_upgrades(http_client=http_client)
+                        boosts = await self.get_boosts(http_client=http_client)
+
+                        await http_client.post(url='https://api.hamsterkombat.io/clicker/list-tasks', json={})
 
                         exchange_id = profile_data.get('exchangeId')
                         if not exchange_id:
@@ -377,7 +388,6 @@ class Tapper:
                     total = int(player_data.get('totalCoins', 0))
                     earn_on_hour = player_data['earnPassivePerHour']
 
-                    boosts = await self.get_boosts(http_client=http_client)
                     energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
@@ -389,6 +399,8 @@ class Tapper:
                         status="TAP",
                         amount=balance,
                     )
+
+                    boosts = await self.get_boosts(http_client=http_client)
 
                     if active_turbo is False:
                         if (settings.APPLY_DAILY_ENERGY is True
@@ -414,8 +426,6 @@ class Tapper:
                                 continue
 
                         if settings.AUTO_UPGRADE is True:
-                            upgrades = await self.get_upgrades(http_client=http_client)
-
                             available_upgrades = [
                                 data for data in upgrades
                                 if data['isAvailable'] is True
@@ -446,9 +456,10 @@ class Tapper:
                                     logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
                                     await asyncio.sleep(delay=5)
 
-                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
+                                    status, new_upgrades = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
 
                                     if status is True:
+                                        upgrades = new_upgrades
                                         earn_on_hour += upgrade[4]
                                         balance -= upgrade[3]
                                         logger.success(
