@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
 
+    SESSION_PACK_LIMIT: int = 10
+    NEXT_PACK_DELAY: int = 3
+
+    ADD_SECONDS_TO_NEXT_TAP: int = 3600
+
     RANDOM_TAPS_COUNT: list[int] = [50, 200]
     SLEEP_BETWEEN_TAP: list[int] = [10, 25]
 

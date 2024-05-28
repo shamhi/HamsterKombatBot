@@ -19,7 +19,7 @@ from bot.utils import logger
 from bot.utils.fingerprint import FINGERPRINT
 from bot.utils.scripts import escape_html
 from bot.exceptions import InvalidSession
-from db.functions import get_user_proxy, get_user_agent, save_log
+from db.functions import get_user_proxy, get_user_agent, save_log, get_tap_time, set_tap_time
 from .headers import headers
 
 local_db = {}
@@ -289,6 +289,12 @@ class Tapper:
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
 
+        tap_time = await get_tap_time(db_pool=self.db_pool, phone_number=self.user_data.phone_number)
+
+        if time() < tap_time:
+            logger.info(f"{self.session_name} | Next tap in <y>{tap_time - time()}s</y> | Next sessions pack")
+            return
+
         user_agent = await get_user_agent(db_pool=self.db_pool, phone_number=self.user_data.phone_number)
         headers['User-Agent'] = user_agent
 
@@ -429,11 +435,11 @@ class Tapper:
                             available_upgrades = [
                                 data for data in upgrades
                                 if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                                and (data.get('condition') is None
-                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
                             ]
 
                             queue = []
@@ -456,7 +462,8 @@ class Tapper:
                                     logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
                                     await asyncio.sleep(delay=5)
 
-                                    status, new_upgrades = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
+                                    status, new_upgrades = await self.buy_upgrade(http_client=http_client,
+                                                                                  upgrade_id=upgrade[0])
 
                                     if status is True:
                                         upgrades = new_upgrades
@@ -479,6 +486,10 @@ class Tapper:
                                 continue
 
                         if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                            await set_tap_time(db_pool=self.db_pool,
+                                               phone_number=self.user_data.phone_number,
+                                               timestamp=time() + settings.ADD_SECONDS_TO_NEXT_TAP)
+
                             logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
                             logger.info(f"{self.session_name} | Next sessions pack")
 
