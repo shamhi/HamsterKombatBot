@@ -49,6 +49,16 @@ async def get_tap_time(db_pool: async_sessionmaker, phone_number: int) -> int:
 
 async def set_tap_time(db_pool: async_sessionmaker, phone_number: int, timestamp: int) -> None:
     async with db_pool() as db_session:
+        query = select(NextTimes).where(NextTimes.account__ID == phone_number)
+        result = await db_session.execute(query)
+        next_time = result.scalars().one_or_none()
+
+        if next_time:
+            next_time.tap = timestamp
+            await db_session.commit()
+
+            return
+
         next_time = NextTimes(
             account__ID=phone_number,
             tap=timestamp
