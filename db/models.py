@@ -35,6 +35,8 @@ class Logs(Base):
 class NextTimes(Base):
     __tablename__ = 'next_times'
 
+    id = Column(Integer, primary_key=True, nullable=False)
+
     account__ID = Column(BigInteger, ForeignKey("accounts.number"), nullable=False)
 
     tap = Column(BigInteger, nullable=True, default=None)
