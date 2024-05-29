@@ -40,7 +40,7 @@ async def save_log(db_pool: async_sessionmaker, phone: int, status: str, amount:
 
 async def get_tap_time(db_pool: async_sessionmaker, phone_number: int) -> int:
     async with db_pool() as db_session:
-        query = select(NextTimes.tap).where(NextTimes.account__ID == phone_number)
+        query = select(NextTimes.tap).where(NextTimes.account__ID == phone_number).where(NextTimes.botName == "HamsterKombatBot")
         result = await db_session.execute(query)
         tap = result.scalars().one_or_none()
 
