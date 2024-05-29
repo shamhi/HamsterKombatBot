@@ -49,7 +49,7 @@ async def get_tap_time(db_pool: async_sessionmaker, phone_number: int) -> int:
 
 async def set_tap_time(db_pool: async_sessionmaker, phone_number: int, timestamp: int) -> None:
     async with db_pool() as db_session:
-        query = select(NextTimes).where(NextTimes.account__ID == phone_number)
+        query = select(NextTimes).where(NextTimes.account__ID == phone_number).where(NextTimes.botName == "HamsterKombatBot")
         result = await db_session.execute(query)
         next_time = result.scalars().one_or_none()
 
@@ -61,7 +61,8 @@ async def set_tap_time(db_pool: async_sessionmaker, phone_number: int, timestamp
 
         next_time = NextTimes(
             account__ID=phone_number,
-            tap=timestamp
+            tap=timestamp,
+            botName="HamsterKombatBot"
         )
 
         db_session.add(next_time)

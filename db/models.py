@@ -39,3 +39,5 @@ class NextTimes(Base):
 
     tap = Column(BigInteger, nullable=True, default=None)
     claim = Column(BigInteger, nullable=True, default=None)
+
+    botName = Column(VARCHAR(50), nullable=True, default=None)
