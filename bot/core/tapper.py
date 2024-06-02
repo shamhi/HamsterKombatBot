@@ -445,6 +445,9 @@ class Tapper:
                                             and price < max_price_limit):
                                         heapq.heappush(queue, (-significance, upgrade_id, upgrade))
 
+                                if not queue:
+                                    continue
+
                                 top_card = heapq.nsmallest(1, queue)[0]
 
                                 upgrade = top_card[2]
