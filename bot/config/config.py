@@ -14,6 +14,8 @@ class Settings(BaseSettings):
 
     AUTO_UPGRADE: bool = True
     MAX_LEVEL: int = 20
+    BALANCE_TO_SAVE: int = 2000000
+    MAX_UPGRADE_PRICE: int = 10000000
 
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True

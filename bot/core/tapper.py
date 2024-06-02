@@ -307,7 +307,7 @@ class Tapper:
                         earn_on_hour = profile_data['earnPassivePerHour']
 
                         logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn}</g> | "
-                                    f"Earn every hour: <y>{earn_on_hour}</y>")
+                                    f"Earn every hour: <y>{earn_on_hour:,}</y>")
 
                         available_energy = profile_data.get('availableTaps', 0)
                         balance = int(profile_data.get('balanceCoins', 0))
@@ -351,7 +351,7 @@ class Tapper:
                     energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
-                                   f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
+                                   f"Balance: <c>{balance:,}</c> (<g>+{calc_taps}</g>) | Total: <e>{total:,}</e>")
 
                     if active_turbo is False:
                         if (settings.APPLY_DAILY_ENERGY is True
@@ -390,15 +390,24 @@ class Tapper:
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                significance = profit / price if price > 0 else 0
+                                significance = profit / max(price, 1)
 
-                                if balance > price and level <= settings.MAX_LEVEL:
+                                free_money = balance - settings.BALANCE_TO_SAVE
+                                max_price_limit = earn_on_hour * 5
+                                max_price_for_upgrade = free_money * 0.3
+
+                                if earn_on_hour < 1000000:
+                                    max_percentage_of_costs = 90 - (60 * earn_on_hour / 1000000)
+                                    max_price_for_upgrade = free_money * max_percentage_of_costs / 100
+
+                                if max_price_for_upgrade > price and level <= settings.MAX_LEVEL and profit > 0 and price < max_price_limit and price <= settings.MAX_UPGRADE_PRICE:
                                     queue.append([upgrade_id, significance, level, price, profit])
 
                             queue.sort(key=operator.itemgetter(1), reverse=True)
 
                             for upgrade in queue:
-                                if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
+                                free_money = balance - settings.BALANCE_TO_SAVE
+                                if free_money > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
                                     logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
                                     await asyncio.sleep(delay=5)
 
@@ -409,8 +418,9 @@ class Tapper:
                                         balance -= upgrade[3]
                                         logger.success(
                                             f"{self.session_name} | "
-                                            f"Successfully upgraded <e>{upgrade[0]}</e> to <m>{upgrade[2]}</m> lvl | "
-                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{upgrade[4]}</g>)")
+                                            f"Successfully upgraded <e>{upgrade[0]}</e> with price <r>{upgrade[3]:,}</r> to <m>{upgrade[2]}</m> lvl | "
+                                            f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{upgrade[4]}</g>) | "
+                                            f"Money left: <e>{balance:,}</e>")
 
                                         await asyncio.sleep(delay=1)
 
