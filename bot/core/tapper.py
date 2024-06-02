@@ -1,6 +1,6 @@
 import json
+import heapq
 import asyncio
-import operator
 from time import time
 from random import randint
 from urllib.parse import unquote
@@ -107,6 +107,23 @@ class Tapper:
                          f"Response text: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
+    async def get_me_telegram(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/auth/me-telegram',
+                                              json={})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            tasks = response_json['telegramUser']
+
+            return tasks
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Me Telegram: {error} | "
+                         f"Response text: {escape_html(response_text)[:128]}...")
+            await asyncio.sleep(delay=3)
+
     async def get_profile_data(self, http_client: aiohttp.ClientSession) -> dict[str]:
         response_text = ''
         try:
@@ -122,6 +139,23 @@ class Tapper:
             return profile_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
+                         f"Response text: {escape_html(response_text)[:128]}...")
+            await asyncio.sleep(delay=3)
+
+    async def get_config(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/config',
+                                              json={})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            config = response_json['clickerConfig']
+
+            return config
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Config: {error} | "
                          f"Response text: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
@@ -207,7 +241,7 @@ class Tapper:
                          f"Response text: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
-    async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> bool:
+    async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> tuple[bool, dict[str]]:
         response_text = ''
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/clicker/buy-upgrade',
@@ -216,13 +250,16 @@ class Tapper:
             if response.status != 422:
                 response.raise_for_status()
 
-            return True
+            response_json = json.loads(response_text)
+            upgrades = response_json.get('upgradesForBuy') or response_json.get('found', {}).get('upgradesForBuy', {})
+
+            return True, upgrades
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error} | "
                          f"Response text: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
-            return False
+            return False, {}
 
     async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
         response_text = ''
@@ -292,16 +329,13 @@ class Tapper:
 
                         access_token_created_time = time()
 
+                        await self.get_me_telegram(http_client=http_client)
+                        await self.get_config(http_client=http_client)
+
                         profile_data = await self.get_profile_data(http_client=http_client)
 
                         if not profile_data:
                             continue
-
-                        exchange_id = profile_data.get('exchangeId')
-                        if not exchange_id:
-                            status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
 
                         last_passive_earn = profile_data['lastPassiveEarn']
                         earn_on_hour = profile_data['earnPassivePerHour']
@@ -312,6 +346,8 @@ class Tapper:
                         available_energy = profile_data.get('availableTaps', 0)
                         balance = int(profile_data.get('balanceCoins', 0))
 
+                        upgrades = await self.get_upgrades(http_client=http_client)
+                        boosts = await self.get_boosts(http_client=http_client)
                         tasks = await self.get_tasks(http_client=http_client)
 
                         daily_task = tasks[-1]
@@ -319,11 +355,21 @@ class Tapper:
                         is_completed = daily_task['isCompleted']
                         days = daily_task['days']
 
+                        await asyncio.sleep(delay=2)
+
                         if is_completed is False:
                             status = await self.get_daily(http_client=http_client)
                             if status is True:
                                 logger.success(f"{self.session_name} | Successfully get daily reward | "
                                                f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}")
+
+                        await asyncio.sleep(delay=2)
+
+                        exchange_id = profile_data.get('exchangeId')
+                        if not exchange_id:
+                            status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
 
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
@@ -347,7 +393,6 @@ class Tapper:
                     total = int(player_data.get('totalCoins', 0))
                     earn_on_hour = player_data['earnPassivePerHour']
 
-                    boosts = await self.get_boosts(http_client=http_client)
                     energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
                     logger.success(f"{self.session_name} | Successful tapped! | "
@@ -370,59 +415,72 @@ class Tapper:
                                 continue
 
                         if settings.AUTO_UPGRADE is True:
-                            upgrades = await self.get_upgrades(http_client=http_client)
+                            for _ in range(settings.UPGRADES_COUNT):
+                                available_upgrades = [
+                                    data for data in upgrades
+                                    if data['isAvailable'] is True
+                                    and data['isExpired'] is False
+                                    and data.get('cooldownSeconds', 0) == 0
+                                    and data.get('maxLevel', data['level']) >= data['level']
+                                    and (data.get('condition') is None
+                                         or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                                ]
 
-                            available_upgrades = [
-                                data for data in upgrades
-                                if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                                and (data.get('condition') is None
-                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
-                            ]
+                                queue = []
 
-                            queue = []
+                                for upgrade in available_upgrades:
+                                    upgrade_id = upgrade['id']
+                                    level = upgrade['level']
+                                    price = upgrade['price']
+                                    profit = upgrade['profitPerHourDelta']
 
-                            for upgrade in available_upgrades:
+                                    significance = profit / max(price, 1)
+
+                                    free_money = balance - settings.BALANCE_TO_SAVE
+                                    max_price_limit = earn_on_hour * 5
+
+                                    if ((free_money * 0.7) >= price
+                                            and level <= settings.MAX_LEVEL
+                                            and profit > 0
+                                            and price < max_price_limit):
+                                        heapq.heappush(queue, (-significance, upgrade_id, upgrade))
+
+                                top_card = heapq.nsmallest(1, queue)[0]
+
+                                upgrade = top_card[2]
+
                                 upgrade_id = upgrade['id']
                                 level = upgrade['level']
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                significance = profit / price if price > 0 else 0
+                                logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
+                                await asyncio.sleep(delay=5)
 
-                                if balance > price and level <= settings.MAX_LEVEL:
-                                    queue.append([upgrade_id, significance, level, price, profit])
+                                status, upgrades = await self.buy_upgrade(http_client=http_client,
+                                                                          upgrade_id=upgrade_id)
 
-                            queue.sort(key=operator.itemgetter(1), reverse=True)
+                                if status is True:
+                                    earn_on_hour += profit
+                                    balance -= price
+                                    logger.success(
+                                        f"{self.session_name} | "
+                                        f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                                        f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit}</g>) | "
+                                        f"Money left: <e>{balance:,}</e>")
 
-                            for upgrade in queue:
-                                if balance > upgrade[3] and upgrade[2] <= settings.MAX_LEVEL:
-                                    logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade[0]}</e>")
-                                    await asyncio.sleep(delay=5)
+                                    await asyncio.sleep(delay=1)
 
-                                    status = await self.buy_upgrade(http_client=http_client, upgrade_id=upgrade[0])
-
-                                    if status is True:
-                                        earn_on_hour += upgrade[4]
-                                        balance -= upgrade[3]
-                                        logger.success(
-                                            f"{self.session_name} | "
-                                            f"Successfully upgraded <e>{upgrade[0]}</e> to <m>{upgrade[2]}</m> lvl | "
-                                            f"Earn every hour: <y>{earn_on_hour}</y> (<g>+{upgrade[4]}</g>)")
-
-                                        await asyncio.sleep(delay=1)
-
-                                continue
+                                    continue
 
                         if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                            random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY - 300,
+                                                   settings.SLEEP_BY_MIN_ENERGY + 500)
+
                             logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
-                            logger.info(f"{self.session_name} | Sleep {settings.SLEEP_BY_MIN_ENERGY}s")
+                            logger.info(f"{self.session_name} | Sleep {random_sleep}s")
 
-                            await asyncio.sleep(delay=settings.SLEEP_BY_MIN_ENERGY)
-
-                            continue
+                            await asyncio.sleep(delay=random_sleep)
 
                 except InvalidSession as error:
                     raise error
