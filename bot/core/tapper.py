@@ -490,6 +490,8 @@ class Tapper:
 
                         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
+                        access_token_created_time = 0
+
             except InvalidSession as error:
                 raise error
 
