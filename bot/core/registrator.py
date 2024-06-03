@@ -9,9 +9,9 @@ async def register_sessions() -> None:
     API_HASH = settings.API_HASH
 
     if not API_ID or not API_HASH:
-        raise ValueError("API_ID and API_HASH not found in the .env file.")
+        raise ValueError("API_ID и API_HASH не найдены в .env файле.")
 
-    session_name = input('\nEnter the session name (press Enter to exit): ')
+    session_name = input('\nВведите название сессии (нажмите ENTER для выхода): ')
 
     if not session_name:
         return None
@@ -26,4 +26,4 @@ async def register_sessions() -> None:
     async with session:
         user_data = await session.get_me()
 
-    logger.success(f'Session added successfully @{user_data.username} | {user_data.first_name} {user_data.last_name}')
+    logger.success(f'Сессия успешно добавлена: @{user_data.username} | {user_data.first_name} {user_data.last_name}')
