@@ -59,9 +59,9 @@ class Tapper:
                 except FloodWait as fl:
                     fls = fl.value
 
-                    logger.warning(f"{self.session_name} | FloodWait {fl}")
+                    logger.warning(f"{self.session_name} | Ожидание из-за FloodWait {fl}")
                     fls *= 2
-                    logger.info(f"{self.session_name} | Sleep {fls}s")
+                    logger.info(f"{self.session_name} | Спим {fls} секунд")
 
                     await asyncio.sleep(fls)
 
@@ -87,7 +87,7 @@ class Tapper:
             raise error
 
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
+            logger.error(f"{self.session_name} | Неизвестная ошибка во время авторизации: {error}")
             await asyncio.sleep(delay=3)
 
     async def login(self, http_client: aiohttp.ClientSession, tg_web_data: str) -> str:
@@ -103,8 +103,7 @@ class Tapper:
 
             return access_token
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении токена доступа: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def get_me_telegram(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -120,8 +119,7 @@ class Tapper:
 
             return tasks
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Me Telegram: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении информации о Telegram: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def get_profile_data(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -138,8 +136,7 @@ class Tapper:
 
             return profile_data
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении данных профиля: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def get_config(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -155,8 +152,7 @@ class Tapper:
 
             return config
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Config: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении конфигурации: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def get_tasks(self, http_client: aiohttp.ClientSession) -> dict[str]:
@@ -172,8 +168,7 @@ class Tapper:
 
             return tasks
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Tasks: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении задач: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def select_exchange(self, http_client: aiohttp.ClientSession, exchange_id: str) -> bool:
@@ -186,8 +181,7 @@ class Tapper:
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Select Exchange: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при выборе биржи: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -202,8 +196,7 @@ class Tapper:
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Daily: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении ежедневного задания: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -218,8 +211,7 @@ class Tapper:
 
             return True
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Apply {boost_id} Boost: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при применении буста {boost_id}: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
             return False
@@ -237,8 +229,7 @@ class Tapper:
 
             return upgrades
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении улучшений: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> tuple[bool, dict[str]]:
@@ -255,8 +246,7 @@ class Tapper:
 
             return True, upgrades
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while buying Upgrade: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при покупке улучшения: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
             return False, {}
@@ -273,8 +263,7 @@ class Tapper:
 
             return boosts
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при получении бустов: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def send_taps(self, http_client: aiohttp.ClientSession, available_energy: int, taps: int) -> dict[str]:
@@ -292,17 +281,16 @@ class Tapper:
 
             return player_data
         except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while Tapping: {error} | "
-                         f"Response text: {escape_html(response_text)[:128]}...")
+            logger.error(f"{self.session_name} | Неизвестная ошибка при тапах: {error} | Текст ответа: {escape_html(response_text)[:128]}...")
             await asyncio.sleep(delay=3)
 
     async def check_proxy(self, http_client: aiohttp.ClientSession, proxy: Proxy) -> None:
         try:
             response = await http_client.get(url='https://httpbin.org/ip', timeout=aiohttp.ClientTimeout(5))
             ip = (await response.json()).get('origin')
-            logger.info(f"{self.session_name} | Proxy IP: {ip}")
+            logger.info(f"{self.session_name} | Прокси IP: {ip}")
         except Exception as error:
-            logger.error(f"{self.session_name} | Proxy: {proxy} | Error: {error}")
+            logger.error(f"{self.session_name} | Прокси: {proxy} | Ошибка: {error}")
 
     async def run(self, proxy: str | None) -> None:
         access_token_created_time = 0
@@ -340,8 +328,12 @@ class Tapper:
                         last_passive_earn = profile_data['lastPassiveEarn']
                         earn_on_hour = profile_data['earnPassivePerHour']
 
-                        logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn}</g> | "
-                                    f"Earn every hour: <y>{earn_on_hour}</y>")
+                        # Форматируем числа как целые с разделением тысяч через точку
+                        last_passive_earn_str = f"{int(last_passive_earn):,}".replace(',', '.')
+                        earn_on_hour_str = f"{int(earn_on_hour):,}".replace(',', '.')
+
+                        logger.info(f"{self.session_name} | Последний пассивный доход: <g>+{last_passive_earn_str}</g> | Доход каждый час: <y>{earn_on_hour_str}</y>")
+
 
                         available_energy = profile_data.get('availableTaps', 0)
                         balance = int(profile_data.get('balanceCoins', 0))
@@ -360,8 +352,7 @@ class Tapper:
                         if is_completed is False:
                             status = await self.get_daily(http_client=http_client)
                             if status is True:
-                                logger.success(f"{self.session_name} | Successfully get daily reward | "
-                                               f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}")
+                                logger.success(f"{self.session_name} | Успешно получено ежедневная награда | Дни: <m>{days}</m> | Награда в монетах: {rewards[days - 1]['rewardCoins']}")
 
                         await asyncio.sleep(delay=2)
 
@@ -369,7 +360,7 @@ class Tapper:
                         if not exchange_id:
                             status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
                             if status is True:
-                                logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
+                                logger.success(f"{self.session_name} | Успешно выбрана биржа <y>Bybit</y>")
 
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
@@ -393,22 +384,27 @@ class Tapper:
                     total = int(player_data.get('totalCoins', 0))
                     earn_on_hour = player_data['earnPassivePerHour']
 
+                    boosts = await self.get_boosts(http_client=http_client)
                     energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
-                    logger.success(f"{self.session_name} | Successful tapped! | "
-                                   f"Balance: <c>{balance}</c> (<g>+{calc_taps}</g>) | Total: <e>{total}</e>")
+                    balance_str = f"{balance:,}".replace(',', '.')
+                    calc_taps_str = f"{calc_taps:,}".replace(',', '.')
+                    total_str = f"{total:,}".replace(',', '.')
+
+                    logger.success(f"{self.session_name} | Успешный тап! | Баланс: <c>{balance_str}</c> (<g>+{calc_taps_str}</g>) | Всего: <e>{total_str}</e>")
+
 
                     if active_turbo is False:
                         if (settings.APPLY_DAILY_ENERGY is True
                                 and available_energy < settings.MIN_AVAILABLE_ENERGY
                                 and energy_boost.get("cooldownSeconds", 0) == 0
                                 and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
-                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
+                            logger.info(f"{self.session_name} | Спим 5 секунд перед применением буста энергии")
                             await asyncio.sleep(delay=5)
 
                             status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
                             if status is True:
-                                logger.success(f"{self.session_name} | Successfully apply energy boost")
+                                logger.success(f"{self.session_name} | Успешно применен буст энергии")
 
                                 await asyncio.sleep(delay=1)
 
@@ -457,7 +453,7 @@ class Tapper:
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
+                                logger.info(f"{self.session_name} | Спим 5 секунд перед улучшением <e>{upgrade_id}</e>")
                                 await asyncio.sleep(delay=5)
 
                                 status, upgrades = await self.buy_upgrade(http_client=http_client,
@@ -466,22 +462,27 @@ class Tapper:
                                 if status is True:
                                     earn_on_hour += profit
                                     balance -= price
+                                    
+                                    price_str = f"{price:,}".replace(',', '.')
+                                    earn_on_hour_str = f"{earn_on_hour:,}".replace(',', '.')
+                                    balance_str = f"{balance:,}".replace(',', '.')
+                                    profit_str = f"{profit:,}".replace(',', '.')
+                                    
                                     logger.success(
                                         f"{self.session_name} | "
-                                        f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
-                                        f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit}</g>) | "
-                                        f"Money left: <e>{balance:,}</e>")
-
+                                        f"Успешно улучшено <e>{upgrade_id}</e> с ценой <r>{price_str}</r> до <m>{level}</m> уровня | "
+                                        f"Доход каждый час: <y>{earn_on_hour_str}</y> (<g>+{profit_str}</g>) | "
+                                        f"Оставшиеся деньги: <e>{balance_str}</e>")
+                                    
                                     await asyncio.sleep(delay=1)
-
                                     continue
 
                         if available_energy < settings.MIN_AVAILABLE_ENERGY:
                             random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY - 300,
                                                    settings.SLEEP_BY_MIN_ENERGY + 500)
 
-                            logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
-                            logger.info(f"{self.session_name} | Sleep {random_sleep}s")
+                            logger.info(f"{self.session_name} | Минимальная энергия достигнута: {available_energy}")
+                            logger.info(f"{self.session_name} | Спим {random_sleep} секунд")
 
                             await asyncio.sleep(delay=random_sleep)
 
@@ -498,7 +499,7 @@ class Tapper:
                     if active_turbo is True:
                         sleep_between_clicks = 4
 
-                    logger.info(f"Sleep {sleep_between_clicks}s")
+                    logger.info(f"Спим {sleep_between_clicks} секунд")
                     await asyncio.sleep(delay=sleep_between_clicks)
 
 
