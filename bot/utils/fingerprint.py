@@ -1,30 +1,7 @@
-import random
-
 from bot.utils.scripts import generate_random_visitor_id
 
 
 visitor_id = generate_random_visitor_id()
-
-timezones = {
-    'America/New_York': 'en-US',
-    'America/Los_Angeles': 'en-US',
-    'Europe/London': 'en-GB',
-    'Europe/Paris': 'fr-FR',
-    'Europe/Berlin': 'de-DE',
-    'Asia/Tokyo': 'ja-JP',
-    'Asia/Shanghai': 'zh-CN',
-    'Asia/Kolkata': 'hi-IN',
-    'Australia/Sydney': 'en-AU',
-    'Africa/Johannesburg': 'en-ZA',
-    'America/Sao_Paulo': 'pt-BR',
-    'America/Mexico_City': 'es-MX',
-    'Europe/Moscow': 'ru-RU',
-    'Asia/Dubai': 'ar-AE',
-    'Pacific/Auckland': 'en-NZ'
-}
-
-timezone = random.choice(list(timezones.keys()))
-language = timezones[timezone]
 
 FINGERPRINT = {
     'fingerprint': {
@@ -83,7 +60,7 @@ FINGERPRINT = {
             'languages': {
                 'value': [
                     [
-                        language,
+                        "ru-RU",
                     ],
                 ],
                 'duration': 0,
@@ -108,7 +85,7 @@ FINGERPRINT = {
                 'duration': 0,
             },
             'timezone': {
-                'value': timezone,
+                'value': "Europe/Moscow",
                 'duration': 2,
             },
             'sessionStorage': {
