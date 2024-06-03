@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
 
-    RANDOM_TAPS_COUNT: list[int] = [50, 200]
+    RANDOM_TAPS_COUNT: list[int] = [10, 50]
     SLEEP_BETWEEN_TAP: list[int] = [10, 25]
 
     USE_PROXY_FROM_FILE: bool = False
