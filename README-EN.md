@@ -20,7 +20,7 @@
 |--------------------------|------------------------------------------------------------------------------------------|
 | **API_ID / API_HASH**    | Platform data from which to launch a Telegram session _(stock - Android)_                |
 | **MIN_AVAILABLE_ENERGY** | Minimum amount of available energy, upon reaching which there will be a delay _(eg 100)_ |
-| **SLEEP_BY_MIN_ENERGY**  | Delay when reaching minimum energy in seconds _(eg 200)_                                 |
+| **SLEEP_BY_MIN_ENERGY**  | Delay when reaching minimum energy in seconds _(eg [1800,2400])_                         |
 | **AUTO_UPGRADE**         | Whether to upgrade the passive earn _(True / False)_                                     |
 | **MAX_LEVEL**            | Maximum upgrade level _(eg 20)_                                                          |
 | **BALANCE_TO_SAVE**      | Balance limit that the bot “won't touch” _(eg 1000000)_                                  |
