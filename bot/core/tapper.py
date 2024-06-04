@@ -480,8 +480,7 @@ class Tapper:
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         await http_client.close()
 
-                        random_sleep = randint(max(settings.SLEEP_BY_MIN_ENERGY, 0) - 300,
-                                               settings.SLEEP_BY_MIN_ENERGY + 500)
+                        random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
                         logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
                         logger.info(f"{self.session_name} | Sleep {random_sleep:,}s")
