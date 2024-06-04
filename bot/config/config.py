@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     API_HASH: str
 
     MIN_AVAILABLE_ENERGY: int = 100
-    SLEEP_BY_MIN_ENERGY: int = 1800
+    SLEEP_BY_MIN_ENERGY: list[int] = [1800, 2400]
 
     ADD_TAPS_ON_TURBO: int = 2500
 
