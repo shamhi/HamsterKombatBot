@@ -479,6 +479,7 @@ class Tapper:
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         await http_client.close()
+                        proxy_conn.close()
 
                         random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
@@ -487,6 +488,7 @@ class Tapper:
 
                         await asyncio.sleep(delay=random_sleep)
 
+                        proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
                         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
                         access_token_created_time = 0
