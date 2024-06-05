@@ -420,11 +420,11 @@ class Tapper:
                             available_upgrades = [
                                 data for data in upgrades
                                 if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                                and (data.get('condition') is None
-                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
                             ]
 
                             queue = []
@@ -479,7 +479,8 @@ class Tapper:
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         await http_client.close()
-                        proxy_conn.close()
+                        if proxy_conn:
+                            proxy_conn.close()
 
                         random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
