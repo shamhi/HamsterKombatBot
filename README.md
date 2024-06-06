@@ -69,6 +69,8 @@
 ~/HamsterKombatBot >>> python main.py
 ```
 
+> Установка в качестве Linux службы для фоновой работы бота [тут](docs/LINUX-SERVIS-INSTALL.md).
+
 Также для быстрого запуска вы можете использовать аргументы, например:
 ```shell
 ~/HamsterKombatBot >>> python3 main.py --action (1/2)
