@@ -399,7 +399,7 @@ class Tapper:
                             status = await self.claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
                             if status is True:
                                 logger.success(f"{self.session_name} | "
-                                               f"Successfully claim daily cipher: <y>{decoded_cipher}</y> |"
+                                               f"Successfully claim daily cipher: <y>{decoded_cipher}</y> | "
                                                f"Bonus: <g>+{bonus:,}</g>")
 
                         await asyncio.sleep(delay=2)
