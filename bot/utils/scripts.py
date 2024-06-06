@@ -1,6 +1,7 @@
 import hashlib
 import random
 import string
+import base64
 
 
 def generate_random_visitor_id():
@@ -12,3 +13,8 @@ def generate_random_visitor_id():
 
 def escape_html(text: str) -> str:
     return text.replace('<', '\\<').replace('>', '\\>')
+
+
+def decode_cipher(cipher: str) -> str:
+    encoded = cipher[:3] + cipher[4:]
+    return base64.b64decode(encoded).decode('utf-8')
