@@ -152,7 +152,7 @@ class Tapper:
             response.raise_for_status()
 
             response_json = await response.json()
-            config = response_json['clickerConfig']
+            config = response_json
 
             return config
         except Exception as error:
@@ -387,21 +387,22 @@ class Tapper:
 
                     await asyncio.sleep(delay=2)
 
-                    daily_cipher = game_config['dailyCipher']
-                    cipher = daily_cipher['cipher']
-                    bonus = daily_cipher['bonusCoins']
-                    is_claimed = daily_cipher['isClaimed']
+                    daily_cipher = game_config.get('dailyCipher')
+                    if daily_cipher:
+                        cipher = daily_cipher['cipher']
+                        bonus = daily_cipher['bonusCoins']
+                        is_claimed = daily_cipher['isClaimed']
 
-                    if not is_claimed and cipher:
-                        decoded_cipher = decode_cipher(cipher=cipher)
+                        if not is_claimed and cipher:
+                            decoded_cipher = decode_cipher(cipher=cipher)
 
-                        status = await self.claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
-                        if status is True:
-                            logger.success(f"{self.session_name} | "
-                                           f"Successfully claim daily cipher: <y>{decoded_cipher}</y> |"
-                                           f"Bonus: <g>+{bonus:,}</g>")
+                            status = await self.claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
+                            if status is True:
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully claim daily cipher: <y>{decoded_cipher}</y> |"
+                                               f"Bonus: <g>+{bonus:,}</g>")
 
-                    await asyncio.sleep(delay=2)
+                        await asyncio.sleep(delay=2)
 
                     exchange_id = profile_data.get('exchangeId')
                     if not exchange_id:
