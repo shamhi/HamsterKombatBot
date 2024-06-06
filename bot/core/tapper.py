@@ -133,10 +133,10 @@ class Tapper:
                 response_text = await response.text()
                 if response.status != 422:
                     response.raise_for_status()
-    
+
                 response_json = json.loads(response_text)
                 profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
-    
+
                 return profile_data
             except Exception as error:
                 logger.error(f"{self.session_name} | Unknown error while getting Profile Data: {error} | "
@@ -311,7 +311,6 @@ class Tapper:
         active_turbo = False
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
-
         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
         if proxy:
@@ -321,6 +320,14 @@ class Tapper:
 
         while True:
             try:
+                if http_client.closed:
+                    if proxy_conn:
+                        if not proxy_conn.closed:
+                            proxy_conn.close()
+
+                    proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+                    http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
+
                 if time() - access_token_created_time >= 3600:
                     access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
@@ -478,7 +485,8 @@ class Tapper:
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         await http_client.close()
                         if proxy_conn:
-                            proxy_conn.close()
+                            if not proxy_conn.closed:
+                                proxy_conn.close()
 
                         random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
@@ -486,9 +494,6 @@ class Tapper:
                         logger.info(f"{self.session_name} | Sleep {random_sleep:,}s")
 
                         await asyncio.sleep(delay=random_sleep)
-
-                        proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
-                        http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
                         access_token_created_time = 0
 
