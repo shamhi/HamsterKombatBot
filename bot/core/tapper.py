@@ -369,7 +369,6 @@ class Tapper:
                     balance = int(profile_data.get('balanceCoins', 0))
 
                     upgrades = await self.get_upgrades(http_client=http_client)
-                    boosts = await self.get_boosts(http_client=http_client)
                     tasks = await self.get_tasks(http_client=http_client)
 
                     daily_task = tasks[-1]
@@ -432,27 +431,10 @@ class Tapper:
                 total = int(player_data.get('totalCoins', 0))
                 earn_on_hour = player_data['earnPassivePerHour']
 
-                energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
-
                 logger.success(f"{self.session_name} | Successful tapped! | "
                                f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>")
 
                 if active_turbo is False:
-                    if (settings.APPLY_DAILY_ENERGY is True
-                            and available_energy < settings.MIN_AVAILABLE_ENERGY
-                            and energy_boost.get("cooldownSeconds", 0) == 0
-                            and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
-                        logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
-                        await asyncio.sleep(delay=5)
-
-                        status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
-                        if status is True:
-                            logger.success(f"{self.session_name} | Successfully apply energy boost")
-
-                            await asyncio.sleep(delay=1)
-
-                            continue
-
                     if settings.AUTO_UPGRADE is True:
                         for _ in range(settings.UPGRADES_COUNT):
                             available_upgrades = [
@@ -516,6 +498,23 @@ class Tapper:
                                 continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                        boosts = await self.get_boosts(http_client=http_client)
+                        energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
+
+                        if (settings.APPLY_DAILY_ENERGY is True
+                                and energy_boost.get("cooldownSeconds", 0) == 0
+                                and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
+                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
+                            await asyncio.sleep(delay=5)
+
+                            status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully apply energy boost")
+
+                                await asyncio.sleep(delay=1)
+
+                                continue
+
                         await http_client.close()
                         if proxy_conn:
                             if not proxy_conn.closed:
