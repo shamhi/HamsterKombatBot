@@ -15,7 +15,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 from bot.config import settings
 from bot.utils import logger
 from bot.utils.fingerprint import FINGERPRINT
-from bot.utils.scripts import escape_html
+from bot.utils.scripts import escape_html, decode_cipher
 from bot.exceptions import InvalidSession
 from .headers import headers
 
@@ -152,7 +152,7 @@ class Tapper:
             response.raise_for_status()
 
             response_json = await response.json()
-            config = response_json['clickerConfig']
+            config = response_json
 
             return config
         except Exception as error:
@@ -278,6 +278,22 @@ class Tapper:
                          f"Response text: {escape_html(response_text)[:256]}...")
             await asyncio.sleep(delay=3)
 
+    async def claim_daily_cipher(self, http_client: aiohttp.ClientSession, cipher: str) -> bool:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/claim-daily-cipher',
+                                              json={'cipher': cipher})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            return True
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while Claim Daily Cipher: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
+            return False
+
     async def send_taps(self, http_client: aiohttp.ClientSession, available_energy: int, taps: int) -> dict[str]:
         response_text = ''
         try:
@@ -339,7 +355,7 @@ class Tapper:
                     access_token_created_time = time()
 
                     await self.get_me_telegram(http_client=http_client)
-                    await self.get_config(http_client=http_client)
+                    game_config = await self.get_config(http_client=http_client)
 
                     profile_data = await self.get_profile_data(http_client=http_client)
 
@@ -353,7 +369,6 @@ class Tapper:
                     balance = int(profile_data.get('balanceCoins', 0))
 
                     upgrades = await self.get_upgrades(http_client=http_client)
-                    boosts = await self.get_boosts(http_client=http_client)
                     tasks = await self.get_tasks(http_client=http_client)
 
                     daily_task = tasks[-1]
@@ -370,6 +385,23 @@ class Tapper:
                                            f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}")
 
                     await asyncio.sleep(delay=2)
+
+                    daily_cipher = game_config.get('dailyCipher')
+                    if daily_cipher:
+                        cipher = daily_cipher['cipher']
+                        bonus = daily_cipher['bonusCoins']
+                        is_claimed = daily_cipher['isClaimed']
+
+                        if not is_claimed and cipher:
+                            decoded_cipher = decode_cipher(cipher=cipher)
+
+                            status = await self.claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
+                            if status is True:
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully claim daily cipher: <y>{decoded_cipher}</y> | "
+                                               f"Bonus: <g>+{bonus:,}</g>")
+
+                        await asyncio.sleep(delay=2)
 
                     exchange_id = profile_data.get('exchangeId')
                     if not exchange_id:
@@ -399,37 +431,20 @@ class Tapper:
                 total = int(player_data.get('totalCoins', 0))
                 earn_on_hour = player_data['earnPassivePerHour']
 
-                energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
-
                 logger.success(f"{self.session_name} | Successful tapped! | "
                                f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>")
 
                 if active_turbo is False:
-                    if (settings.APPLY_DAILY_ENERGY is True
-                            and available_energy < settings.MIN_AVAILABLE_ENERGY
-                            and energy_boost.get("cooldownSeconds", 0) == 0
-                            and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
-                        logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
-                        await asyncio.sleep(delay=5)
-
-                        status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
-                        if status is True:
-                            logger.success(f"{self.session_name} | Successfully apply energy boost")
-
-                            await asyncio.sleep(delay=1)
-
-                            continue
-
                     if settings.AUTO_UPGRADE is True:
                         for _ in range(settings.UPGRADES_COUNT):
                             available_upgrades = [
                                 data for data in upgrades
                                 if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                                and (data.get('condition') is None
-                                     or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
                             ]
 
                             queue = []
@@ -483,6 +498,23 @@ class Tapper:
                                 continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                        boosts = await self.get_boosts(http_client=http_client)
+                        energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
+
+                        if (settings.APPLY_DAILY_ENERGY is True
+                                and energy_boost.get("cooldownSeconds", 0) == 0
+                                and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
+                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
+                            await asyncio.sleep(delay=5)
+
+                            status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully apply energy boost")
+
+                                await asyncio.sleep(delay=1)
+
+                                continue
+
                         await http_client.close()
                         if proxy_conn:
                             if not proxy_conn.closed:
