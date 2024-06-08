@@ -107,6 +107,22 @@ class Tapper:
                          f"Response text: {escape_html(response_text)[:256]}...")
             await asyncio.sleep(delay=3)
 
+    async def get_nuxt_builds(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        response_text = ''
+        try:
+            response = await http_client.get(url='https://hamsterkombat.io/_nuxt/builds/meta/32ddd2fc-00f7-4814-bc32-8f160963692c.json')
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            nuxt_builds = response_json
+
+            return nuxt_builds
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Nuxt Builds: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
     async def get_me_telegram(self, http_client: aiohttp.ClientSession) -> dict[str]:
         response_text = ''
         try:
@@ -116,9 +132,9 @@ class Tapper:
             response.raise_for_status()
 
             response_json = await response.json()
-            tasks = response_json['telegramUser']
+            me = response_json['telegramUser']
 
-            return tasks
+            return me
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Me Telegram: {error} | "
                          f"Response text: {escape_html(response_text)[:256]}...")
@@ -378,6 +394,8 @@ class Tapper:
                     http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
                 if time() - access_token_created_time >= 3600:
+                    await self.get_nuxt_builds(http_client=http_client)
+
                     access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
                     if not access_token:
