@@ -3,6 +3,7 @@ import heapq
 import asyncio
 from time import time
 from random import randint
+from datetime import datetime
 from urllib.parse import unquote
 
 import aiohttp
@@ -14,10 +15,8 @@ from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
 from bot.utils import logger
-from bot.utils.fingerprint import FINGERPRINT
-from bot.utils.scripts import escape_html, decode_cipher
+from bot.utils.scripts import escape_html, decode_cipher, get_headers, get_fingerprint
 from bot.exceptions import InvalidSession
-from .headers import headers
 
 
 class Tapper:
@@ -94,7 +93,7 @@ class Tapper:
         response_text = ''
         try:
             response = await http_client.post(url='https://api.hamsterkombat.io/auth/auth-by-telegram-webapp',
-                                              json={"initDataRaw": tg_web_data, "fingerprint": FINGERPRINT})
+                                              json={"initDataRaw": tg_web_data, "fingerprint": get_fingerprint()})
             response_text = await response.text()
             response.raise_for_status()
 
@@ -209,6 +208,55 @@ class Tapper:
 
             return False
 
+    async def get_upgrades(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/upgrades-for-buy',
+                                              json={})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            upgrades = response_json
+
+            return upgrades
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
+    async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/boosts-for-buy', json={})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            boosts = response_json['boostsForBuy']
+
+            return boosts
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
+    async def get_combo_cards(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        response_text = ''
+        try:
+            response = await http_client.get(url='https://api21.datavibe.top/api/GetCombo')
+            response_text = await response.text()
+            response.raise_for_status()
+
+            response_json = await response.json()
+            combo_cards = response_json
+
+            return combo_cards
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while getting Combo Cards: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
     async def apply_boost(self, http_client: aiohttp.ClientSession, boost_id: str) -> bool:
         response_text = ''
         try:
@@ -224,23 +272,6 @@ class Tapper:
             await asyncio.sleep(delay=3)
 
             return False
-
-    async def get_upgrades(self, http_client: aiohttp.ClientSession) -> list[dict]:
-        response_text = ''
-        try:
-            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/upgrades-for-buy',
-                                              json={})
-            response_text = await response.text()
-            response.raise_for_status()
-
-            response_json = await response.json()
-            upgrades = response_json['upgradesForBuy']
-
-            return upgrades
-        except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Upgrades: {error} | "
-                         f"Response text: {escape_html(response_text)[:256]}...")
-            await asyncio.sleep(delay=3)
 
     async def buy_upgrade(self, http_client: aiohttp.ClientSession, upgrade_id: str) -> tuple[bool, dict[str]]:
         response_text = ''
@@ -262,22 +293,6 @@ class Tapper:
 
             return False, {}
 
-    async def get_boosts(self, http_client: aiohttp.ClientSession) -> list[dict]:
-        response_text = ''
-        try:
-            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/boosts-for-buy', json={})
-            response_text = await response.text()
-            response.raise_for_status()
-
-            response_json = await response.json()
-            boosts = response_json['boostsForBuy']
-
-            return boosts
-        except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error while getting Boosts: {error} | "
-                         f"Response text: {escape_html(response_text)[:256]}...")
-            await asyncio.sleep(delay=3)
-
     async def claim_daily_cipher(self, http_client: aiohttp.ClientSession, cipher: str) -> bool:
         response_text = ''
         try:
@@ -289,6 +304,21 @@ class Tapper:
             return True
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while Claim Daily Cipher: {error} | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
+            await asyncio.sleep(delay=3)
+
+            return False
+
+    async def claim_daily_combo(self, http_client: aiohttp.ClientSession) -> bool:
+        response_text = ''
+        try:
+            response = await http_client.post(url='https://api.hamsterkombat.io/clicker/claim-daily-combo', json={})
+            response_text = await response.text()
+            response.raise_for_status()
+
+            return True
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while Claim Daily Combo: {error} | "
                          f"Response text: {escape_html(response_text)[:256]}...")
             await asyncio.sleep(delay=3)
 
@@ -325,6 +355,8 @@ class Tapper:
         access_token_created_time = 0
         turbo_time = 0
         active_turbo = False
+
+        headers = get_headers()
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
@@ -368,7 +400,64 @@ class Tapper:
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
 
-                    upgrades = await self.get_upgrades(http_client=http_client)
+                    upgrades_data = await self.get_upgrades(http_client=http_client)
+
+                    upgrades = upgrades_data['upgradesForBuy']
+                    daily_combo = upgrades_data.get('dailyCombo')
+                    if daily_combo:
+                        bonus = daily_combo['bonusCoins']
+                        is_claimed = daily_combo['isClaimed']
+
+                        if not is_claimed:
+                            combo_cards = await self.get_combo_cards(http_client=http_client)
+
+                            cards = combo_cards['combo']
+                            date = combo_cards['date']
+
+                            available_combo_cards = [
+                                data for data in upgrades
+                                if data['isAvailable'] is True
+                                   and data['id'] in cards
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                            ]
+
+                            if date == datetime.now().strftime("%d-%m-%y"):
+                                common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
+
+                                if common_price < bonus and balance > common_price:
+                                    for upgrade in available_combo_cards:
+                                        upgrade_id = upgrade['id']
+                                        level = upgrade['level']
+                                        price = upgrade['price']
+                                        profit = upgrade['profitPerHourDelta']
+
+                                        logger.info(f"{self.session_name} | "
+                                                    f"Sleep 5s before upgrade <r>combo</r> card <e>{upgrade_id}</e>")
+
+                                        await asyncio.sleep(delay=5)
+
+                                        status, upgrades = await self.buy_upgrade(http_client=http_client,
+                                                                                  upgrade_id=upgrade_id)
+
+                                        if status is True:
+                                            earn_on_hour += profit
+                                            balance -= price
+                                            logger.success(f"{self.session_name} | "
+                                                           f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                                                           f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
+                                                           f"Money left: <e>{balance:,}</e>")
+
+                                            await asyncio.sleep(delay=1)
+
+                            status = await self.claim_daily_combo(http_client=http_client)
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully claimed daily combo | "
+                                               f"Bonus: <g>+{bonus:,}</g>")
+
                     tasks = await self.get_tasks(http_client=http_client)
 
                     daily_task = tasks[-1]
