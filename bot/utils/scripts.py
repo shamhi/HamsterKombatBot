@@ -21,26 +21,27 @@ def decode_cipher(cipher: str) -> str:
     return base64.b64decode(encoded).decode('utf-8')
 
 
-def get_headers():
+def get_headers(name: str):
     try:
         with open('profile.json', 'r') as file:
             profile = json.load(file)
-
-        headers = profile['headers']
-
-        return headers
     except:
-        return {}
+        profile = {}
+
+    headers = profile.get(name, {}).get('headers', {})
+
+    return headers
 
 
-def get_fingerprint():
+def get_fingerprint(name: str):
     try:
         with open('profile.json', 'r') as file:
             profile = json.load(file)
-
-        fingerprint = profile['fingerprint']
-        fingerprint['visitorId'] = generate_random_visitor_id()
-
-        return fingerprint
     except:
-        return {}
+        profile = {}
+
+    fingerprint = profile.get(name, {}).get('fingerprint', {})
+
+    fingerprint['visitorId'] = generate_random_visitor_id()
+
+    return fingerprint

@@ -92,8 +92,9 @@ class Tapper:
     async def login(self, http_client: aiohttp.ClientSession, tg_web_data: str) -> str:
         response_text = ''
         try:
+            fingerprint = get_fingerprint(name=self.tg_client.name)
             response = await http_client.post(url='https://api.hamsterkombat.io/auth/auth-by-telegram-webapp',
-                                              json={"initDataRaw": tg_web_data, "fingerprint": get_fingerprint()})
+                                              json={"initDataRaw": tg_web_data, "fingerprint": fingerprint})
             response_text = await response.text()
             response.raise_for_status()
 
@@ -356,7 +357,7 @@ class Tapper:
         turbo_time = 0
         active_turbo = False
 
-        headers = get_headers()
+        headers = get_headers(name=self.tg_client.name)
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
@@ -452,6 +453,8 @@ class Tapper:
                                                            f"Money left: <e>{balance:,}</e>")
 
                                             await asyncio.sleep(delay=1)
+
+                                    await asyncio.sleep(delay=2)
 
                                     status = await self.claim_daily_combo(http_client=http_client)
                                     if status is True:

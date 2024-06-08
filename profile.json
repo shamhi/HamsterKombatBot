@@ -1,5 +1,6 @@
 {
-  "headers": {
+  "main": {
+      "headers": {
       "Accept": "*/*",
       "Accept-Language": "ru,ru-RU;q=0.9,en-US;q=0.8,en;q=0.7",
       "Connection": "keep-alive",
@@ -16,7 +17,7 @@
   },
   "fingerprint": {
       "version": "4.2.1",
-      "visitorId": "cca953327bae6203fd3dd0646f846611",
+      "visitorId": "",
       "components": {
         "fonts": {
           "value": [
@@ -224,4 +225,5 @@
         "webGlExtensions": null
       }
     }
+  }
 }
