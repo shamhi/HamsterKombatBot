@@ -13,11 +13,12 @@ from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, 
 from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
+from bot.core.headers import get_headers
 from bot.utils import logger
 from bot.utils.fingerprint import FINGERPRINT
 from bot.utils.scripts import escape_html, decode_cipher
 from bot.exceptions import InvalidSession
-from .headers import headers
+
 
 
 class Tapper:
@@ -327,7 +328,8 @@ class Tapper:
         active_turbo = False
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
-        http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
+        http_client = aiohttp.ClientSession(headers=get_headers(),
+                                            connector=proxy_conn)
 
         if proxy:
             await self.check_proxy(http_client=http_client, proxy=proxy)
@@ -342,7 +344,7 @@ class Tapper:
                             proxy_conn.close()
 
                     proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
-                    http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
+                    http_client = aiohttp.ClientSession(headers=get_headers(), connector=proxy_conn)
 
                 if time() - access_token_created_time >= 3600:
                     access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
