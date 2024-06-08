@@ -1,5 +1,5 @@
 FROM python:3.11-alpine3.20 as builder
-
+LABEL org.opencontainers.image.source=https://github.com/4erdenko/HamsterKombatBot
 WORKDIR /app
 
 COPY requirements.txt .
