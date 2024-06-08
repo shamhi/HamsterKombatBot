@@ -453,10 +453,10 @@ class Tapper:
 
                                             await asyncio.sleep(delay=1)
 
-                            status = await self.claim_daily_combo(http_client=http_client)
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully claimed daily combo | "
-                                               f"Bonus: <g>+{bonus:,}</g>")
+                                    status = await self.claim_daily_combo(http_client=http_client)
+                                    if status is True:
+                                        logger.success(f"{self.session_name} | Successfully claimed daily combo | "
+                                                       f"Bonus: <g>+{bonus:,}</g>")
 
                     tasks = await self.get_tasks(http_client=http_client)
 
