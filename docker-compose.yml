@@ -11,7 +11,7 @@ services:
       - -a
       - '2'
     volumes:
-      - sessions:/app/sessions
-      - config:/app/config
+      - ./sessions:/app/sessions
+      - ./config:/app/bot/config
     env_file:
       - .env
