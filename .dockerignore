@@ -96,3 +96,7 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+*.bat
+*.md
+*.yml
+LICENSE
