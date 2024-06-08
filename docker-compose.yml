@@ -12,5 +12,6 @@ services:
       - '2'
     volumes:
       - sessions:/app/sessions
+      - config:/app/config
     env_file:
       - .env
