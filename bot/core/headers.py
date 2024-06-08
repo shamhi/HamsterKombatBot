@@ -16,10 +16,10 @@ def get_mobile_user_agent() -> str:
     """
     ua = UserAgent(platforms=['mobile'], os=['android'])
     user_agent = ua.random
-    if "wv" not in user_agent:
-        parts = user_agent.split(")")
-        parts[0] += "; wv"
-        user_agent = ")".join(parts)
+    if 'wv' not in user_agent:
+        parts = user_agent.split(')')
+        parts[0] += '; wv'
+        user_agent = ')'.join(parts)
     return user_agent
 
 
