@@ -1,6 +1,6 @@
 import aiohttp
-from typing import Any, Dict
-from bot.api.http import make_post_request
+from typing import Any
+from bot.api.http import handle_error, make_post_request
 
 
 async def get_tasks(
@@ -24,3 +24,21 @@ async def get_daily(http_client: aiohttp.ClientSession) -> bool:
         'getting Daily',
     )
     return bool(response_json)
+
+
+async def get_nuxt_builds(
+    http_client: aiohttp.ClientSession,
+) -> dict[Any, Any]:
+    response_text = None
+    try:
+        response = await http_client.get(
+            url='https://hamsterkombat.io/_nuxt/builds/meta/32ddd2fc-00f7-4814-bc32-8f160963692c.json'
+        )
+        response_text = await response.text()
+        response.raise_for_status()
+        response_json = await response.json()
+        nuxt_builds = response_json
+        return nuxt_builds
+    except Exception as error:
+        await handle_error(error, response_text, 'getting Nuxt Builds')
+        return {}
