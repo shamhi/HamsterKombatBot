@@ -1,11 +1,10 @@
 import aiohttp
-from better_proxy import Proxy
 
 from bot.utils.logger import logger
 
 
 async def check_proxy(
-    http_client: aiohttp.ClientSession, proxy: Proxy, session_name: str
+    http_client: aiohttp.ClientSession, proxy: str, session_name: str
 ) -> None:
     try:
         response = await http_client.get(
