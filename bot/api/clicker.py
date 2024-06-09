@@ -1,8 +1,7 @@
-import json
 from time import time
 from typing import Any
 import aiohttp
-from bot.api.http import handle_error, make_post_request
+from bot.api.http import make_post_request
 
 
 async def get_config(
@@ -24,7 +23,7 @@ async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
             'https://api.hamsterkombat.io/clicker/sync',
             {},
             'getting Profile Data',
-            ignore_status=422
+            ignore_status=422,
         )
         profile_data = response_json.get('clickerUser') or response_json.get(
             'found', {}
@@ -33,15 +32,13 @@ async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
             return profile_data
 
 
-async def get_upgrades(http_client: aiohttp.ClientSession) -> list[dict]:
-    response_json = await make_post_request(
+async def get_upgrades(http_client: aiohttp.ClientSession) -> dict:
+    return await make_post_request(
         http_client,
         'https://api.hamsterkombat.io/clicker/upgrades-for-buy',
         {},
         'getting Upgrades',
     )
-    upgrades = response_json.get('upgradesForBuy', [])
-    return upgrades
 
 
 async def buy_upgrade(
@@ -89,7 +86,11 @@ async def send_taps(
     response_json = await make_post_request(
         http_client,
         'https://api.hamsterkombat.io/clicker/tap',
-        {'availableTaps': available_energy, 'count': taps, 'timestamp': time()},
+        {
+            'availableTaps': available_energy,
+            'count': taps,
+            'timestamp': time(),
+        },
         'Tapping',
         ignore_status=422,
     )
