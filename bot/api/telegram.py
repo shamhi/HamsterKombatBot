@@ -1,5 +1,5 @@
 import aiohttp
-from typing import Any, Dict
+from typing import Any
 
 from bot.api.http import make_post_request
 
