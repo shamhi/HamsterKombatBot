@@ -1,3 +1,4 @@
+version: '3'
 services:
   bot:
     container_name: 'HamsterKombatBot'
@@ -5,13 +6,6 @@ services:
       context: .
     stop_signal: SIGINT
     restart: unless-stopped
-    command: 
-      - python3
-      - main.py
-      - -a
-      - '2'
+    command: "python3 main.py -a 2"
     volumes:
-      - ./sessions:/app/sessions
-      - ./config:/app/bot/config
-    env_file:
-      - .env
+      - .:/app

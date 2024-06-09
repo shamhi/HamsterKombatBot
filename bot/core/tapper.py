@@ -1,14 +1,22 @@
-import asyncio
+import json
 import heapq
+import asyncio
+from time import time
 from random import randint
+from datetime import datetime
+from urllib.parse import unquote
 
 import aiohttp
 from aiohttp_proxy import ProxyConnector
+from better_proxy import Proxy
 from pyrogram import Client
+from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
+from pyrogram.raw.functions.messages import RequestWebView
 
-from bot.api.combo import claim_daily_combo, get_combo_cards
-from bot.api.telegram import get_me_telegram
 from bot.config import settings
+from bot.utils import logger
+from bot.utils.scripts import escape_html, decode_cipher, get_headers, get_fingerprint
+from bot.exceptions import InvalidSession
 
 
 class Tapper:
@@ -368,22 +376,12 @@ class Tapper:
         headers = get_headers(name=self.tg_client.name)
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
-        http_client = aiohttp.ClientSession(
-            headers=headers, connector=proxy_conn
-        )
+        http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
         if proxy:
-            await check_proxy(
-                http_client=http_client,
-                proxy=proxy,
-                session_name=self.session_name,
-            )
+            await self.check_proxy(http_client=http_client, proxy=proxy)
 
-        tg_web_data = await get_tg_web_data(
-            tg_client=self.tg_client,
-            proxy=proxy,
-            session_name=self.session_name,
-        )
+        tg_web_data = await self.get_tg_web_data(proxy=proxy)
 
         while True:
             try:
@@ -392,39 +390,36 @@ class Tapper:
                         if not proxy_conn.closed:
                             proxy_conn.close()
 
-                    proxy_conn = (
-                        ProxyConnector().from_url(proxy) if proxy else None
-                    )
-                    http_client = aiohttp.ClientSession(
-                        headers=headers, connector=proxy_conn
-                    )
+                    proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+                    http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
+
+                if time() - access_token_created_time >= 3600:
+                    await self.get_nuxt_builds(http_client=http_client)
+
+                    access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
                     if not access_token:
                         continue
 
-                    http_client.headers[
-                        'Authorization'
-                    ] = f'Bearer {access_token}'
+                    http_client.headers["Authorization"] = f"Bearer {access_token}"
 
                     access_token_created_time = time()
 
-                    await get_me_telegram(http_client=http_client)
-                    game_config = await get_config(http_client=http_client)
+                    await self.get_me_telegram(http_client=http_client)
+                    game_config = await self.get_config(http_client=http_client)
 
-                    profile_data = await get_profile_data(
-                        http_client=http_client
-                    )
+                    profile_data = await self.get_profile_data(http_client=http_client)
 
                     last_passive_earn = profile_data['lastPassiveEarn']
                     earn_on_hour = profile_data['earnPassivePerHour']
 
-                    logger.info(
-                        f'{self.session_name} | Last passive earn: <g>+{last_passive_earn:,}</g> | '
-                        f'Earn every hour: <y>{earn_on_hour:,}</y>'
-                    )
+                    logger.info(f"{self.session_name} | Last passive earn: <g>+{last_passive_earn:,}</g> | "
+                                f"Earn every hour: <y>{earn_on_hour:,}</y>")
 
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
+
+                    upgrades_data = await self.get_upgrades(http_client=http_client)
 
                     upgrades = upgrades_data['upgradesForBuy']
                     daily_combo = upgrades_data.get('dailyCombo')
@@ -433,23 +428,58 @@ class Tapper:
                         is_claimed = daily_combo['isClaimed']
 
                         if not is_claimed:
+                            combo_cards = await self.get_combo_cards(http_client=http_client)
+
                             cards = combo_cards['combo']
                             date = combo_cards['date']
 
                             available_combo_cards = [
+                                data for data in upgrades
+                                if data['isAvailable'] is True
+                                   and data['id'] in cards
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                            ]
+
+                            if date == datetime.now().strftime("%d-%m-%y"):
+                                common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
+
+                                if common_price < bonus and balance > common_price:
                                     for upgrade in available_combo_cards:
                                         upgrade_id = upgrade['id']
                                         level = upgrade['level']
                                         price = upgrade['price']
                                         profit = upgrade['profitPerHourDelta']
 
+                                        logger.info(f"{self.session_name} | "
+                                                    f"Sleep 5s before upgrade <r>combo</r> card <e>{upgrade_id}</e>")
+
+                                        await asyncio.sleep(delay=5)
+
+                                        status, upgrades = await self.buy_upgrade(http_client=http_client,
+                                                                                  upgrade_id=upgrade_id)
+
                                         if status is True:
                                             earn_on_hour += profit
                                             balance -= price
+                                            logger.success(f"{self.session_name} | "
+                                                           f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                                                           f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
+                                                           f"Money left: <e>{balance:,}</e>")
 
                                             await asyncio.sleep(delay=1)
 
                                     await asyncio.sleep(delay=2)
+
+                                    status = await self.claim_daily_combo(http_client=http_client)
+                                    if status is True:
+                                        logger.success(f"{self.session_name} | Successfully claimed daily combo | "
+                                                       f"Bonus: <g>+{bonus:,}</g>")
+
+                    tasks = await self.get_tasks(http_client=http_client)
 
                     daily_task = tasks[-1]
                     rewards = daily_task['rewardsByDays']
@@ -459,12 +489,10 @@ class Tapper:
                     await asyncio.sleep(delay=2)
 
                     if is_completed is False:
-                        status = await get_daily(http_client=http_client)
+                        status = await self.get_daily(http_client=http_client)
                         if status is True:
-                            logger.success(
-                                f'{self.session_name} | Successfully get daily reward | '
-                                f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}"
-                            )
+                            logger.success(f"{self.session_name} | Successfully get daily reward | "
+                                           f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}")
 
                     await asyncio.sleep(delay=2)
 
@@ -477,32 +505,21 @@ class Tapper:
                         if not is_claimed and cipher:
                             decoded_cipher = decode_cipher(cipher=cipher)
 
-                            status = await claim_daily_cipher(
-                                http_client=http_client, cipher=decoded_cipher
-                            )
+                            status = await self.claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
                             if status is True:
-                                logger.success(
-                                    f'{self.session_name} | '
-                                    f'Successfully claim daily cipher: <y>{decoded_cipher}</y> | '
-                                    f'Bonus: <g>+{bonus:,}</g>'
-                                )
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully claim daily cipher: <y>{decoded_cipher}</y> | "
+                                               f"Bonus: <g>+{bonus:,}</g>")
 
                         await asyncio.sleep(delay=2)
 
                     exchange_id = profile_data.get('exchangeId')
                     if not exchange_id:
-                        status = await select_exchange(
-                            http_client=http_client, exchange_id='bybit'
-                        )
+                        status = await self.select_exchange(http_client=http_client, exchange_id="bybit")
                         if status is True:
-                            logger.success(
-                                f'{self.session_name} | Successfully selected exchange <y>Bybit</y>'
-                            )
+                            logger.success(f"{self.session_name} | Successfully selected exchange <y>Bybit</y>")
 
-                taps = randint(
-                    a=settings.RANDOM_TAPS_COUNT[0],
-                    b=settings.RANDOM_TAPS_COUNT[1],
-                )
+                taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
                 if active_turbo:
                     taps += settings.ADD_TAPS_ON_TURBO
@@ -510,11 +527,9 @@ class Tapper:
                         active_turbo = False
                         turbo_time = 0
 
-                player_data = await send_taps(
-                    http_client=http_client,
-                    available_energy=available_energy,
-                    taps=taps,
-                )
+                player_data = await self.send_taps(http_client=http_client,
+                                                   available_energy=available_energy,
+                                                   taps=taps)
 
                 if not player_data:
                     continue
@@ -526,27 +541,20 @@ class Tapper:
                 total = int(player_data.get('totalCoins', 0))
                 earn_on_hour = player_data['earnPassivePerHour']
 
-                logger.success(
-                    f'{self.session_name} | Successful tapped! | '
-                    f'Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>'
-                )
+                logger.success(f"{self.session_name} | Successful tapped! | "
+                               f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>")
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
                         for _ in range(settings.UPGRADES_COUNT):
                             available_upgrades = [
-                                data
-                                for data in upgrades
+                                data for data in upgrades
                                 if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level'])
-                                >= data['level']
-                                and (
-                                    data.get('condition') is None
-                                    or data['condition'].get('_type')
-                                    != 'SubscribeTelegramChannel'
-                                )
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level']) >= data['level']
+                                   and (data.get('condition') is None
+                                        or data['condition'].get('_type') != 'SubscribeTelegramChannel')
                             ]
 
                             queue = []
@@ -562,16 +570,11 @@ class Tapper:
                                 free_money = balance - settings.BALANCE_TO_SAVE
                                 max_price_limit = earn_on_hour * 5
 
-                                if (
-                                    (free_money * 0.7) >= price
-                                    and level <= settings.MAX_LEVEL
-                                    and profit > 0
-                                    and price < max_price_limit
-                                ):
-                                    heapq.heappush(
-                                        queue,
-                                        (-significance, upgrade_id, upgrade),
-                                    )
+                                if ((free_money * 0.7) >= price
+                                        and level <= settings.MAX_LEVEL
+                                        and profit > 0
+                                        and price < max_price_limit):
+                                    heapq.heappush(queue, (-significance, upgrade_id, upgrade))
 
                             if not queue:
                                 continue
@@ -585,59 +588,38 @@ class Tapper:
                             price = upgrade['price']
                             profit = upgrade['profitPerHourDelta']
 
-                            logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
-                            )
+                            logger.info(f"{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
                             await asyncio.sleep(delay=5)
 
-                            status, upgrades = await buy_upgrade(
-                                http_client=http_client, upgrade_id=upgrade_id
-                            )
+                            status, upgrades = await self.buy_upgrade(http_client=http_client,
+                                                                      upgrade_id=upgrade_id)
 
                             if status is True:
                                 earn_on_hour += profit
                                 balance -= price
                                 logger.success(
-                                    f'{self.session_name} | '
-                                    f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
-                                    f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
-                                    f'Money left: <e>{balance:,}</e>'
-                                )
+                                    f"{self.session_name} | "
+                                    f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                                    f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
+                                    f"Money left: <e>{balance:,}</e>")
 
                                 await asyncio.sleep(delay=1)
 
                                 continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
-                        boosts = await get_boosts(http_client=http_client)
-                        energy_boost = next(
-                            (
-                                boost
-                                for boost in boosts
-                                if boost['id'] == 'BoostFullAvailableTaps'
-                            ),
-                            {},
-                        )
+                        boosts = await self.get_boosts(http_client=http_client)
+                        energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
-                        if (
-                            settings.APPLY_DAILY_ENERGY is True
-                            and energy_boost.get('cooldownSeconds', 0) == 0
-                            and energy_boost.get('level', 0)
-                            <= energy_boost.get('maxLevel', 0)
-                        ):
-                            logger.info(
-                                f'{self.session_name} | Sleep 5s before apply energy boost'
-                            )
+                        if (settings.APPLY_DAILY_ENERGY is True
+                                and energy_boost.get("cooldownSeconds", 0) == 0
+                                and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)):
+                            logger.info(f"{self.session_name} | Sleep 5s before apply energy boost")
                             await asyncio.sleep(delay=5)
 
-                            status = await apply_boost(
-                                http_client=http_client,
-                                boost_id='BoostFullAvailableTaps',
-                            )
+                            status = await self.apply_boost(http_client=http_client, boost_id="BoostFullAvailableTaps")
                             if status is True:
-                                logger.success(
-                                    f'{self.session_name} | Successfully apply energy boost'
-                                )
+                                logger.success(f"{self.session_name} | Successfully apply energy boost")
 
                                 await asyncio.sleep(delay=1)
 
@@ -648,17 +630,10 @@ class Tapper:
                             if not proxy_conn.closed:
                                 proxy_conn.close()
 
-                        random_sleep = randint(
-                            settings.SLEEP_BY_MIN_ENERGY[0],
-                            settings.SLEEP_BY_MIN_ENERGY[1],
-                        )
+                        random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
-                        logger.info(
-                            f'{self.session_name} | Minimum energy reached: {available_energy}'
-                        )
-                        logger.info(
-                            f'{self.session_name} | Sleep {random_sleep:,}s'
-                        )
+                        logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
+                        logger.info(f"{self.session_name} | Sleep {random_sleep:,}s")
 
                         await asyncio.sleep(delay=random_sleep)
 
@@ -668,19 +643,16 @@ class Tapper:
                 raise error
 
             except Exception as error:
-                logger.error(f'{self.session_name} | Unknown error: {error}')
+                logger.error(f"{self.session_name} | Unknown error: {error}")
                 await asyncio.sleep(delay=3)
 
             else:
-                sleep_between_clicks = randint(
-                    a=settings.SLEEP_BETWEEN_TAP[0],
-                    b=settings.SLEEP_BETWEEN_TAP[1],
-                )
+                sleep_between_clicks = randint(a=settings.SLEEP_BETWEEN_TAP[0], b=settings.SLEEP_BETWEEN_TAP[1])
 
                 if active_turbo is True:
                     sleep_between_clicks = 4
 
-                logger.info(f'Sleep {sleep_between_clicks}s')
+                logger.info(f"Sleep {sleep_between_clicks}s")
                 await asyncio.sleep(delay=sleep_between_clicks)
 
 
@@ -688,4 +660,4 @@ async def run_tapper(tg_client: Client, proxy: str | None):
     try:
         await Tapper(tg_client=tg_client).run(proxy=proxy)
     except InvalidSession:
-        logger.error(f'{tg_client.name} | Invalid Session')
+        logger.error(f"{tg_client.name} | Invalid Session")

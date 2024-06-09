@@ -2,12 +2,11 @@ import json
 import random
 import string
 import base64
+import hashlib
 
 
 def generate_random_visitor_id():
-    random_string = ''.join(
-        random.choices(string.ascii_letters + string.digits, k=32)
-    )
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
     visitor_id = hashlib.md5(random_string.encode()).hexdigest()
 
     return visitor_id
@@ -28,6 +27,9 @@ def get_headers(name: str):
             profile = json.load(file)
     except:
         profile = {}
+
+    headers = profile.get(name, {}).get('headers', {})
+
     return headers
 
 
