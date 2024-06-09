@@ -13,13 +13,15 @@ from bot.core.tapper import run_tapper
 from bot.core.registrator import register_sessions
 
 
-start_text = """
+banner = """
 
 ▒█ ▒█ █▀▀█ █▀▄▀█ █▀▀ ▀▀█▀▀ █▀▀ █▀▀█ ▒█ ▄▀ █▀▀█ █▀▄▀█ █▀▀▄ █▀▀█ ▀▀█▀▀ ▒█▀▀█ █▀▀█ ▀▀█▀▀ 
 ▒█▀▀█ █▄▄█ █ ▀ █ ▀▀█   █   █▀▀ █▄▄▀ ▒█▀▄  █  █ █ ▀ █ █▀▀▄ █▄▄█   █   ▒█▀▀▄ █  █   █   
 ▒█ ▒█ ▀  ▀ ▀   ▀ ▀▀▀   ▀   ▀▀▀ ▀ ▀▀ ▒█ ▒█ ▀▀▀▀ ▀   ▀ ▀▀▀  ▀  ▀   ▀   ▒█▄▄█ ▀▀▀▀   ▀  
 
-Select an action:
+"""
+
+options = """Select an action:
 
     1. Create session
     2. Run clicker
@@ -71,9 +73,11 @@ async def process() -> None:
 
     action = parser.parse_args().action
 
+    print(banner)
+    
     if not action:
-        print(start_text)
-
+        print(options)
+        
         while True:
             action = input("> ")
 
