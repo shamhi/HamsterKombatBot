@@ -633,7 +633,7 @@ class Tapper:
                         random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
                         logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
-                        logger.info(f"{self.session_name} | Sleep {convert_seconds_to_standard_time(random_sleep)} until {calculate_start_time(random_sleep)}")
+                        logger.info(f"{self.session_name} | Sleep {convert_seconds_to_formatted_time(random_sleep)} until {calculate_start_time(random_sleep)}")
 
                         await asyncio.sleep(delay=random_sleep)
 
