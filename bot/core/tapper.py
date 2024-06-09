@@ -15,7 +15,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
 from bot.utils import logger
-from bot.utils.scripts import escape_html, decode_cipher, get_headers, get_fingerprint
+from bot.utils.scripts import escape_html, decode_cipher, get_headers, get_fingerprint, convert_seconds_to_formatted_time, calculate_start_time
 from bot.exceptions import InvalidSession
 
 
@@ -633,7 +633,7 @@ class Tapper:
                         random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
                         logger.info(f"{self.session_name} | Minimum energy reached: {available_energy}")
-                        logger.info(f"{self.session_name} | Sleep {random_sleep:,}s")
+                        logger.info(f"{self.session_name} | Sleep {convert_seconds_to_standard_time(random_sleep)} until {calculate_start_time(random_sleep)}")
 
                         await asyncio.sleep(delay=random_sleep)
 
@@ -652,7 +652,7 @@ class Tapper:
                 if active_turbo is True:
                     sleep_between_clicks = 4
 
-                logger.info(f"Sleep {sleep_between_clicks}s")
+                logger.info(f"{self.session_name} | Sleep {sleep_between_clicks}s before click again")
                 await asyncio.sleep(delay=sleep_between_clicks)
 
 
