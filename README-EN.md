@@ -66,6 +66,7 @@ You can download [**Repository**](https://github.com/shamhi/HamsterKombatBot) by
 ~/HamsterKombatBot >>> # Specify your API_ID and API_HASH, the rest is taken by default
 ~/HamsterKombatBot >>> python main.py
 ```
+> Installing as a Linux service for running the bot in the background [here](docs/LINUX-SERVIS-INSTALL_EN.md).
 
 Also for quick launch you can use arguments, for example:
 ```shell
@@ -76,3 +77,4 @@ Also for quick launch you can use arguments, for example:
 #1 - Create session
 #2 - Run clicker
 ```
+## Install as service on Linux
