@@ -69,12 +69,12 @@ async def process() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--action', type=int, help='Action to perform')
 
+    print(banner)
+    
     logger.info(f"Detected {len(get_session_names())} sessions | {len(get_proxies())} proxies")
 
     action = parser.parse_args().action
 
-    print(banner)
-    
     if not action:
         print(options)
         
