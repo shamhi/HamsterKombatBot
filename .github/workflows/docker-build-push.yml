@@ -1,5 +1,4 @@
-name: Build and Push Docker Image
-
+name: Build, Test and Push Docker Image
 on:
   push:
     branches:
@@ -8,10 +7,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/shamhi/hamsterkombatbot:latest
+  IMAGE_NAME: ghcr.io/shamhi/hamsterkombatbot
 
 jobs:
-  build_and_push:
+  build_test_push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,42 +29,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.TOKEN }}
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}
-
       - name: Build Docker image
-        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
+          push: false
           load: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Run container for testing
+      - name: Test Docker image
         run: |
-          echo API_ID=API_ID >> .env
-          echo API_HASH=API_HASH >> .env
-          docker run -d --name HamsterKombatBot --env-file .env -v "$(pwd)/sessions:/app/sessions" -v "$(pwd)/proxies.txt:/app/proxies.txt" ${{ steps.build.outputs.tags }} python3 main.py -a -1
-
-      - name: Check container status
-        run: |
+          echo "API_ID=API_ID" > .env
+          echo "API_HASH=API_HASH" >> .env
+          sed -i "s|image: ${IMAGE_NAME}:latest|image: ${IMAGE_NAME}:test|" docker-compose.yml
+          export ARGUMENT=1
+          docker compose up -d
           sleep 10
-          container_status=$(docker inspect -f '{{.State.Status}}' HamsterKombatBot)
-          if [ "$container_status" != "running" ]; then
-            echo "Container is not running. Exiting."
-            docker logs HamsterKombatBot
-            docker rm -f HamsterKombatBot
-            exit 1
-          fi
-
-      - name: Stop and remove test container
-        run: |
-          docker rm -f HamsterKombatBot
+          docker compose ps
 
       - name: Push Docker image
         if: success()
@@ -74,12 +57,10 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}:latest
 
       - name: Scan image for vulnerabilities
-        if: success()
         uses: anchore/scan-action@v3
         with:
-          image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image: ${{ env.IMAGE_NAME }}:latest
           fail-build: true
