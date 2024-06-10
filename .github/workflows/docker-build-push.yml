@@ -45,10 +45,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Run container
-        env:
-          API_ID: API_ID
-          API_HASH: API_HASH
         run: |
+          echo API_ID=API_ID >> .env
+          echo API_HASH=API_HASH >> .env
           docker compose up -d
           docker compose ps
 
