@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/shamhi/hamsterkombatbot:latest
 
 jobs:
   build_and_push:
@@ -36,6 +37,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
 
       - name: Build Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -44,20 +46,26 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Run container
+      - name: Run container for testing
         run: |
           echo API_ID=API_ID >> .env
           echo API_HASH=API_HASH >> .env
-          docker compose up -d
-          docker compose ps
+          docker run -d --name HamsterKombatBot --env-file .env -v "$(pwd)/sessions:/app/sessions" -v "$(pwd)/proxies.txt:/app/proxies.txt" ${{ steps.build.outputs.tags }} python3 main.py -a -1
 
       - name: Check container status
         run: |
-          container_status=$(docker compose ps --status running --format "{{.Status}}")
+          sleep 10
+          container_status=$(docker inspect -f '{{.State.Status}}' HamsterKombatBot)
           if [ "$container_status" != "running" ]; then
             echo "Container is not running. Exiting."
+            docker logs HamsterKombatBot
+            docker rm -f HamsterKombatBot
             exit 1
           fi
+
+      - name: Stop and remove test container
+        run: |
+          docker rm -f HamsterKombatBot
 
       - name: Push Docker image
         if: success()
@@ -73,5 +81,5 @@ jobs:
         if: success()
         uses: anchore/scan-action@v3
         with:
-          image: ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
+          image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           fail-build: true
