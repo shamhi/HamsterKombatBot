@@ -67,6 +67,7 @@
 ~/HamsterKombatBot >>> # Указываете ваши API_ID и API_HASH, остальное берется по умолчанию
 ~/HamsterKombatBot >>> python main.py
 ```
+> Установка в качестве Linux службы для фоновой работы бота [тут](docs/LINUX-SERVIS-INSTALL.md).
 
 Также для быстрого запуска вы можете использовать аргументы, например:
 ```shell
