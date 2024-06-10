@@ -14,8 +14,8 @@
       "Sec-Ch-Ua": "\"Android WebView\";v=\"125\", \"Chromium\";v=\"125\", \"Not.A/Brand\";v=\"24\"",
       "Sec-Ch-Ua-Mobile": "?1",
       "Sec-Ch-Ua-Platform": "\"Android\""
-  },
-  "fingerprint": {
+    },
+    "fingerprint": {
       "version": "4.2.1",
       "visitorId": "",
       "components": {
