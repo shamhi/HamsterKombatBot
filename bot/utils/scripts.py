@@ -3,7 +3,10 @@ import json
 import random
 import string
 import base64
+
 from fake_useragent import UserAgent
+
+from bot.config import settings
 
 
 def generate_random_visitor_id():
@@ -49,15 +52,20 @@ def get_headers(name: str):
             profile = json.load(file)
     except:
         profile = {}
-    android_version = random.randint(24, 33)
-    webview_version = random.randint(70, 125)
+
     headers = profile.get(name, {}).get('headers', {})
-    headers['Sec-Ch-Ua'] = (
-        f'"Android WebView";v="{webview_version}", '
-        f'"Chromium";v="{webview_version}", '
-        f'"Not?A_Brand";v="{android_version}"'
-    )
-    headers['User-Agent'] = get_mobile_user_agent()
+
+    if settings.USE_RANDOM_USERAGENT:
+        android_version = random.randint(24, 33)
+        webview_version = random.randint(70, 125)
+
+        headers['Sec-Ch-Ua'] = (
+            f'"Android WebView";v="{webview_version}", '
+            f'"Chromium";v="{webview_version}", '
+            f'"Not?A_Brand";v="{android_version}"'
+        )
+        headers['User-Agent'] = get_mobile_user_agent()
+
     return headers
 
 
