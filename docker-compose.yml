@@ -12,6 +12,6 @@ services:
       - '2'
     volumes:
       - ./sessions:/app/sessions
-      - ./config:/app/bot/config
+      - ./proxies.txt:/app/proxies.txt
     env_file:
       - .env
