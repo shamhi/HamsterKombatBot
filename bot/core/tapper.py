@@ -2,7 +2,7 @@ import asyncio
 import heapq
 from random import randint
 from time import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
 from aiohttp_proxy import ProxyConnector
@@ -119,6 +119,7 @@ class Tapper:
                     if daily_combo:
                         bonus = daily_combo['bonusCoins']
                         is_claimed = daily_combo['isClaimed']
+                        upgraded_list = daily_combo['upgradeIds']
 
                         if not is_claimed:
                             combo_cards = await get_combo_cards(
@@ -129,33 +130,37 @@ class Tapper:
                             date = combo_cards['date']
 
                             available_combo_cards = [
-                                data
-                                for data in upgrades
+                                data for data in upgrades
                                 if data['isAvailable'] is True
                                 and data['id'] in cards
+                                and data['id'] not in upgraded_list
                                 and data['isExpired'] is False
                                 and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level'])
-                                >= data['level']
+                                and data.get('maxLevel', data['level']) >= data['level']
                                 and (
                                     data.get('condition') is None
-                                    or data['condition'].get('_type')
-                                    != 'SubscribeTelegramChannel'
+                                    or data['condition'].get('_type') != 'SubscribeTelegramChannel'
                                 )
                             ]
 
-                            if date == datetime.now().strftime('%d-%m-%y'):
-                                common_price = sum(
-                                    [
-                                        upgrade['price']
-                                        for upgrade in available_combo_cards
-                                    ]
-                                )
+                            start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
+                            end_bonus_round = start_bonus_round + timedelta(days=1)
 
-                                if (
-                                    common_price < bonus
-                                    and balance > common_price
-                                ):
+                            if start_bonus_round <= datetime.now() < end_bonus_round:
+                                common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
+                                need_cards_count = len(cards)
+                                possible_cards_count = len(available_combo_cards)
+                                is_combo_accessible = need_cards_count == possible_cards_count
+
+                                if not is_combo_accessible:
+                                    logger.info(f"{self.session_name} | "
+                                                f"<r>Daily combo is not applicable</r>, you can only purchase {possible_cards_count} of {need_cards_count} cards")
+
+                                if balance < common_price:
+                                    logger.info(f"{self.session_name} | "
+                                                f"<r>Daily combo is not applicable</r>, you don't have enough coins. Need <y>{common_price:,}</y> coins, but your balance is <r>{balance:,}</r> coins")
+
+                                if common_price < bonus and balance > common_price and is_combo_accessible:
                                     for upgrade in available_combo_cards:
                                         upgrade_id = upgrade['id']
                                         level = upgrade['level']
@@ -286,15 +291,15 @@ class Tapper:
                                 data
                                 for data in upgrades
                                 if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level'])
-                                >= data['level']
-                                and (
-                                    data.get('condition') is None
-                                    or data['condition'].get('_type')
-                                    != 'SubscribeTelegramChannel'
-                                )
+                                   and data['isExpired'] is False
+                                   and data.get('cooldownSeconds', 0) == 0
+                                   and data.get('maxLevel', data['level'])
+                                   >= data['level']
+                                   and (
+                                           data.get('condition') is None
+                                           or data['condition'].get('_type')
+                                           != 'SubscribeTelegramChannel'
+                                   )
                             ]
 
                             queue = []
@@ -311,10 +316,10 @@ class Tapper:
                                 max_price_limit = earn_on_hour * 5
 
                                 if (
-                                    (free_money * 0.7) >= price
-                                    and level <= settings.MAX_LEVEL
-                                    and profit > 0
-                                    and price < max_price_limit
+                                        (free_money * 0.7) >= price
+                                        and level <= settings.MAX_LEVEL
+                                        and profit > 0
+                                        and price < max_price_limit
                                 ):
                                     heapq.heappush(
                                         queue,
@@ -368,10 +373,10 @@ class Tapper:
                         )
 
                         if (
-                            settings.APPLY_DAILY_ENERGY is True
-                            and energy_boost.get('cooldownSeconds', 0) == 0
-                            and energy_boost.get('level', 0)
-                            <= energy_boost.get('maxLevel', 0)
+                                settings.APPLY_DAILY_ENERGY is True
+                                and energy_boost.get('cooldownSeconds', 0) == 0
+                                and energy_boost.get('level', 0)
+                                <= energy_boost.get('maxLevel', 0)
                         ):
                             logger.info(
                                 f'{self.session_name} | Sleep 5s before apply energy boost'
@@ -402,7 +407,7 @@ class Tapper:
                         )
 
                         logger.info(
-                            f'{self.session_name} | Minimum energy reached: {available_energy}'
+                            f'{self.session_name} | Minimum energy reached: <y>{available_energy}</y>'
                         )
                         logger.info(
                             f'{self.session_name} | Sleep {random_sleep:,}s'
