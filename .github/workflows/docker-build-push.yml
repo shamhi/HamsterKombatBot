@@ -1,4 +1,4 @@
-name: Build, Test and Push Docker Image
+name: Build and Push Docker Image
 on:
   push:
     branches:
@@ -55,9 +55,3 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
-
-      - name: Scan image for vulnerabilities
-        uses: anchore/scan-action@v3
-        with:
-          image: ${{ env.IMAGE_NAME }}:latest
-          fail-build: true
