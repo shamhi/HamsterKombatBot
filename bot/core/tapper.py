@@ -286,6 +286,7 @@ class Tapper:
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
+                        failed_attempts = 0
                         for _ in range(settings.UPGRADES_COUNT):
                             available_upgrades = [
                                 data
@@ -358,8 +359,10 @@ class Tapper:
                                 )
 
                                 await asyncio.sleep(delay=1)
-
-                                continue
+                            else:
+                                failed_attempts += 1
+                                if failed_attempts >= len(available_upgrades):
+                                    continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         boosts = await get_boosts(http_client=http_client)
