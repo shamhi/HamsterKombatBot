@@ -5,12 +5,15 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  packages: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/shamhi/hamsterkombatbot
 
 jobs:
-  build_test_push:
+  build_push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -37,19 +40,8 @@ jobs:
           push: false
           load: true
           platforms: linux/amd64
-#          tags: ${{ env.IMAGE_NAME }}:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-#      - name: Test Docker image
-#        run: |
-#          echo "API_ID=API_ID" > .env
-#          echo "API_HASH=API_HASH" >> .env
-#          sed -i "s|image: ${IMAGE_NAME}:latest|image: ${IMAGE_NAME}:test|" docker-compose.yml
-#          export ARGUMENT=1
-#          docker compose up -d
-#          sleep 10
-#          docker compose ps
 
       - name: Push Docker image
         if: success()
@@ -57,7 +49,6 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/amd64
           tags: ${{ env.IMAGE_NAME }}:latest
 
       - name: Scan image for vulnerabilities
