@@ -28,6 +28,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.TOKEN }}
+          logout: false
 
       - name: Build Docker image
         uses: docker/build-push-action@v5
