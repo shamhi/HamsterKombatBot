@@ -278,6 +278,9 @@ class Tapper:
                 balance = new_balance
                 total = int(player_data.get('totalCoins', 0))
                 earn_on_hour = player_data['earnPassivePerHour']
+                # Activate buying upgrades on new accounts
+                if earn_on_hour == 0:
+                    earn_on_hour = 100
 
                 logger.success(
                     f'{self.session_name} | Successful tapped! | '
