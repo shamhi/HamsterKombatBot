@@ -1,17 +1,26 @@
 name: Build and Push Docker Image
-
 on:
   push:
     branches:
       - main
+      - dev
   workflow_dispatch:
+
+permissions:
+  packages: write
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/shamhi/hamsterkombatbot
 
 jobs:
-  build_and_push:
+  build_push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,35 +36,18 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.TOKEN }}
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
 
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          push: false
           load: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Run container
-        run: |
-          docker compose up -d
-          docker compose ps
-
-      - name: Check container status
-        run: |
-          container_status=$(docker compose ps --status running --format "{{.Status}}")
-          if [ "$container_status" != "running" ]; then
-            echo "Container is not running. Exiting."
-            exit 1
-          fi
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Push Docker image
         if: success()
@@ -63,13 +55,5 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Scan image for vulnerabilities
-        if: success()
-        uses: anchore/scan-action@v3
-        with:
-          image: ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
-          fail-build: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'devbuild' }}

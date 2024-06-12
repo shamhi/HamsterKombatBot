@@ -278,6 +278,9 @@ class Tapper:
                 balance = new_balance
                 total = int(player_data.get('totalCoins', 0))
                 earn_on_hour = player_data['earnPassivePerHour']
+                # Activate buying upgrades on new accounts
+                if earn_on_hour == 0:
+                    earn_on_hour = 100
 
                 logger.success(
                     f'{self.session_name} | Successful tapped! | '
@@ -286,6 +289,7 @@ class Tapper:
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
+                        failed_attempts = 0
                         for _ in range(settings.UPGRADES_COUNT):
                             available_upgrades = [
                                 data
@@ -358,8 +362,10 @@ class Tapper:
                                 )
 
                                 await asyncio.sleep(delay=1)
-
-                                continue
+                            else:
+                                failed_attempts += 1
+                                if failed_attempts >= len(available_upgrades):
+                                    continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         boosts = await get_boosts(http_client=http_client)
