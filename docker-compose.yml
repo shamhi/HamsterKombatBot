@@ -9,7 +9,7 @@ services:
       - python3
       - main.py
       - -a
-      - ${ARGUMENT:2}
+      - '2'
     volumes:
       - ./sessions:/app/sessions
       - ./proxies.txt:/app/proxies.txt
