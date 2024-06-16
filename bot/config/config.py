@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     AUTO_UPGRADE: bool = True
     MAX_LEVEL: int = 20
+    MIN_CARD_PROFIT_DELTA: int = 0
 
     BALANCE_TO_SAVE: int = 1000000
     UPGRADES_COUNT: int = 10
