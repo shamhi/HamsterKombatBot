@@ -5,7 +5,7 @@ from bot.api.http import make_post_request
 async def get_combo_cards(http_client: aiohttp.ClientSession) -> dict:
     return await make_post_request(
         http_client,
-        'https://api21.datavibe.top/api/GetCombo',
+        'https://hamster-kombo-server.vercel.app/api/GetCombo',
         {},
         'getting Combo Cards',
     )
