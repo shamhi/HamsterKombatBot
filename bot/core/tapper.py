@@ -159,7 +159,11 @@ class Tapper:
                                 if balance < common_price:
                                     logger.info(f"{self.session_name} | "
                                                 f"<r>Daily combo is not applicable</r>, you don't have enough coins. Need <y>{common_price:,}</y> coins, but your balance is <r>{balance:,}</r> coins")
-
+                                    
+                                if common_price > 5000000:
+                                    logger.info(f"{self.sessin_name} | "
+                                                f"<r>Daily combo worth more than its profit</r>, profit from combo: ({5000000 - common_price})")
+                                    
                                 if common_price < bonus and balance > common_price and is_combo_accessible:
                                     for upgrade in available_combo_cards:
                                         upgrade_id = upgrade['id']
@@ -296,6 +300,7 @@ class Tapper:
                                 for data in upgrades
                                 if data['isAvailable'] is True
                                    and data['isExpired'] is False
+                                   and data['profitPerHourDelta'] > settings.MIN_CARD_PROFIT_DELTA
                                    and data.get('cooldownSeconds', 0) == 0
                                    and data.get('maxLevel', data['level'])
                                    >= data['level']
