@@ -8,9 +8,12 @@ import aiohttp
 from aiohttp_proxy import ProxyConnector
 from pyrogram import Client
 
+from discord_webhook import DiscordWebhook
+
 from bot.api.combo import claim_daily_combo, get_combo_cards
 from bot.api.telegram import get_me_telegram
 from bot.config import settings
+from bot.core.discord import discord_msg
 from bot.utils.logger import logger
 from bot.exceptions import InvalidSession
 
@@ -188,6 +191,13 @@ class Tapper:
                                                 f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
                                                 f'Money left: <e>{balance:,}</e>'
                                             )
+                                            if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                                                discord_msg(self.session_name,
+                                                        f"{self.session_name} | "
+                                                        f"Successfully upgraded __**{upgrade_id}**__ with price **{price:,}** to **{level}** lvl | "
+                                                        f"Earn every hour: **{earn_on_hour:,}** (+__{profit:,}__) | "
+                                                        f"Money left: **{balance:,}**"
+                                                        )
 
                                             await asyncio.sleep(delay=1)
 
@@ -201,6 +211,14 @@ class Tapper:
                                             f'{self.session_name} | Successfully claimed daily combo | '
                                             f'Bonus: <g>+{bonus:,}</g>'
                                         )
+                                        if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                                            discord_msg(self.session_name,
+                                                    f"{self.session_name} | "
+                                                    f"Successfully claimed daily combo | "
+                                                    f"Bonus: __**+{bonus:,}**__ | "
+                                                    f"Money left: **{balance:,}**"
+                                                    )
+                                        
 
                     tasks = await get_tasks(http_client=http_client)
 
@@ -218,6 +236,14 @@ class Tapper:
                                 f'{self.session_name} | Successfully get daily reward | '
                                 f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}"
                             )
+
+                            if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                                discord_msg(self.session_name,
+                                        f"{self.session_name} | "
+                                        f"Successfully get daily reward | "
+                                        f"Days: {days} | Reward coins: **{rewards[days - 1]['rewardCoins']}** | "
+                                        f"Money left: **{balance:,}**"
+                                        )
 
                     await asyncio.sleep(delay=2)
 
@@ -239,6 +265,13 @@ class Tapper:
                                     f'Successfully claim daily cipher: <y>{decoded_cipher}</y> | '
                                     f'Bonus: <g>+{bonus:,}</g>'
                                 )
+                            if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                                discord_msg(self.session_name,
+                                        f"{self.session_name} | "
+                                        f"Successfully claim daily cipher: __{decoded_cipher}__ | "
+                                        f"Bonus: __**+{bonus:,}**__ | "
+                                        f"Money left: **{balance:,}**"
+                                        )
 
                         await asyncio.sleep(delay=2)
 
@@ -286,6 +319,13 @@ class Tapper:
                     f'{self.session_name} | Successful tapped! | '
                     f'Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>'
                 )
+
+                if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                    discord_msg(self.session_name,
+                            f"{self.session_name} | "
+                            f"Successful tapped! | "
+                            f"Balance: **{balance:,}** (__**+{calc_taps:,}**__) | Total: {total:,}"
+                            )
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
@@ -359,6 +399,14 @@ class Tapper:
                                     f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
                                     f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
                                     f'Money left: <e>{balance:,}</e>'
+                                )
+
+                            if "discord.com/api/webhooks/" in settings.DISCORD_WEEBHOOK_URL:
+                                discord_msg(self.session_name,
+                                    f"{self.session_name} | "
+                                    f"Successfully upgraded __**{upgrade_id}**__ with price **{price:,}** to **{level}** lvl | "
+                                    f"Earn every hour: **{earn_on_hour:,}** (+__{profit:,}__) | "
+                                    f"Money left: **{balance:,}**",
                                 )
 
                                 await asyncio.sleep(delay=1)

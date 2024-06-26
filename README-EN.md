@@ -14,6 +14,7 @@
 | Random sleep time between clicks                               |     ✅     |
 | Random number of clicks per request                            |     ✅     |
 | Support tdata / pyrogram .session / telethon .session          |     ✅     |
+| Discord WeWebhook support.                                     |     ✅     |
 
 ## [Settings](https://github.com/shamhi/HamsterKombatBot/blob/main/.env-example)
 | Настройка                | Описание                                                                                 |
@@ -30,6 +31,7 @@
 | **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg [50,200])_                                                    |
 | **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg [10,25])_                                      |
 | **USE_PROXY_FROM_FILE**  | Whether to use proxy from the `bot/config/proxies.txt` file (True / False)               |
+| **DISCORD_WEEBHOOK_URL** | Whether to send logs via Discord Webhook _("Webhook Link" / "")_                         |
 
 ## Quick Start 📚
 1. To install libraries on Windows click on `INSTALL.bat`.
