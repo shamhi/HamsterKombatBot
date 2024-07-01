@@ -16,6 +16,19 @@ async def get_tasks(
     return tasks
 
 
+async def get_airdrop_tasks(
+    http_client: aiohttp.ClientSession,
+) -> dict[Any, Any] | Any:
+    response_json = await make_post_request(
+        http_client,
+        'https://api.hamsterkombat.io/clicker/list-airdrop-tasks',
+        {},
+        'getting Airdrop Tasks',
+    )
+    tasks = response_json.get('tasks')
+    return tasks
+
+
 async def get_daily(http_client: aiohttp.ClientSession) -> bool:
     response_json = await make_post_request(
         http_client,
