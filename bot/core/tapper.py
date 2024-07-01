@@ -26,9 +26,10 @@ from bot.api.clicker import (
     get_config,
 )
 from bot.api.exchange import select_exchange
-from bot.api.tasks import get_nuxt_builds, get_tasks, get_daily
+from bot.api.tasks import get_nuxt_builds, get_tasks, get_airdrop_tasks, get_daily
 from bot.utils.scripts import decode_cipher, get_headers
 from bot.utils.tg_web_data import get_tg_web_data
+from bot.utils.tg_channel_check import check_participant_channel
 from bot.utils.proxy import check_proxy
 
 
@@ -88,26 +89,20 @@ class Tapper:
                     if not access_token:
                         continue
 
-                    http_client.headers[
-                        'Authorization'
-                    ] = f'Bearer {access_token}'
+                    http_client.headers['Authorization'] = f'Bearer {access_token}'
 
                     access_token_created_time = time()
 
                     await get_me_telegram(http_client=http_client)
                     game_config = await get_config(http_client=http_client)
 
-                    profile_data = await get_profile_data(
-                        http_client=http_client
-                    )
+                    profile_data = await get_profile_data(http_client=http_client)
 
                     last_passive_earn = profile_data['lastPassiveEarn']
                     earn_on_hour = profile_data['earnPassivePerHour']
 
-                    logger.info(
-                        f'{self.session_name} | Last passive earn: <g>+{last_passive_earn:,}</g> | '
-                        f'Earn every hour: <y>{earn_on_hour:,}</y>'
-                    )
+                    logger.info(f'{self.session_name} | Last passive earn: <g>+{last_passive_earn:,}</g> | '
+                                f'Earn every hour: <y>{earn_on_hour:,}</y>')
 
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
@@ -129,19 +124,29 @@ class Tapper:
                             cards = combo_cards['combo']
                             date = combo_cards['date']
 
-                            available_combo_cards = [
-                                data for data in upgrades
-                                if data['isAvailable'] is True
-                                and data['id'] in cards
-                                and data['id'] not in upgraded_list
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                                and (
-                                    data.get('condition') is None
-                                    or data['condition'].get('_type') != 'SubscribeTelegramChannel'
-                                )
-                            ]
+                            async with self.tg_client:
+                                available_combo_cards = [
+                                    data for data in upgrades
+                                    if data['isAvailable'] is True
+                                    and data['id'] in cards
+                                    and data['id'] not in upgraded_list
+                                    and data['isExpired'] is False
+                                    and data.get('cooldownSeconds', 0) == 0
+                                    and data.get('maxLevel', data['level']) >= data['level']
+                                    and (
+                                           data.get('condition') is None
+                                           or (
+                                                   data['condition'].get('_type') == 'SubscribeTelegramChannel'
+                                                   and data['condition'].get('channelId')
+                                                   and (
+                                                       await check_participant_channel(
+                                                           tg_client=self.tg_client,
+                                                           chat_id=data['condition'].get('channelId')
+                                                           )
+                                                       ) is True
+                                              )
+                                       )
+                                ]
 
                             start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
                             end_bonus_round = start_bonus_round + timedelta(days=1)
@@ -221,6 +226,10 @@ class Tapper:
 
                     await asyncio.sleep(delay=2)
 
+                    airdrop_tasks = await get_airdrop_tasks(http_client=http_client)
+
+                    await asyncio.sleep(delay=2)
+
                     daily_cipher = game_config.get('dailyCipher')
                     if daily_cipher:
                         cipher = daily_cipher['cipher']
@@ -286,80 +295,88 @@ class Tapper:
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
-                        for _ in range(settings.UPGRADES_COUNT):
-                            available_upgrades = [
-                                data
-                                for data in upgrades
-                                if data['isAvailable'] is True
-                                   and data['isExpired'] is False
-                                   and data.get('cooldownSeconds', 0) == 0
-                                   and data.get('maxLevel', data['level'])
-                                   >= data['level']
-                                   and (
-                                           data.get('condition') is None
-                                           or data['condition'].get('_type')
-                                           != 'SubscribeTelegramChannel'
-                                   )
-                            ]
+                        async with self.tg_client:
+                            for _ in range(settings.UPGRADES_COUNT):
+                                available_upgrades = [
+                                    data
+                                    for data in upgrades
+                                    if data['isAvailable'] is True
+                                    and data['isExpired'] is False
+                                    and data.get('cooldownSeconds', 0) == 0
+                                    and data.get('maxLevel', data['level']) >= data['level']
+                                    and (
+                                               data.get('condition') is None
+                                               or (
+                                                       data['condition'].get('_type') == 'SubscribeTelegramChannel'
+                                                       and data['condition'].get('channelId')
+                                                       and (
+                                                           await check_participant_channel(
+                                                               tg_client=self.tg_client,
+                                                               chat_id=data['condition'].get('channelId')
+                                                           )
+                                                       ) is True
+                                               )
+                                       )
+                                ]
 
-                            queue = []
+                                queue = []
 
-                            for upgrade in available_upgrades:
+                                for upgrade in available_upgrades:
+                                    upgrade_id = upgrade['id']
+                                    level = upgrade['level']
+                                    price = upgrade['price']
+                                    profit = upgrade['profitPerHourDelta']
+
+                                    significance = profit / max(price, 1)
+
+                                    free_money = balance - settings.BALANCE_TO_SAVE
+                                    max_price_limit = earn_on_hour * 5
+
+                                    if (
+                                            (free_money * 0.7) >= price
+                                            and level <= settings.MAX_LEVEL
+                                            and profit > 0
+                                            and price < max_price_limit
+                                    ):
+                                        heapq.heappush(
+                                            queue,
+                                            (-significance, upgrade_id, upgrade),
+                                        )
+
+                                if not queue:
+                                    continue
+
+                                top_card = heapq.nsmallest(1, queue)[0]
+
+                                upgrade = top_card[2]
+
                                 upgrade_id = upgrade['id']
                                 level = upgrade['level']
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                significance = profit / max(price, 1)
+                                logger.info(
+                                    f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
+                                )
+                                await asyncio.sleep(delay=5)
 
-                                free_money = balance - settings.BALANCE_TO_SAVE
-                                max_price_limit = earn_on_hour * 5
-
-                                if (
-                                        (free_money * 0.7) >= price
-                                        and level <= settings.MAX_LEVEL
-                                        and profit > 0
-                                        and price < max_price_limit
-                                ):
-                                    heapq.heappush(
-                                        queue,
-                                        (-significance, upgrade_id, upgrade),
-                                    )
-
-                            if not queue:
-                                continue
-
-                            top_card = heapq.nsmallest(1, queue)[0]
-
-                            upgrade = top_card[2]
-
-                            upgrade_id = upgrade['id']
-                            level = upgrade['level']
-                            price = upgrade['price']
-                            profit = upgrade['profitPerHourDelta']
-
-                            logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
-                            )
-                            await asyncio.sleep(delay=5)
-
-                            status, upgrades = await buy_upgrade(
-                                http_client=http_client, upgrade_id=upgrade_id
-                            )
-
-                            if status is True:
-                                earn_on_hour += profit
-                                balance -= price
-                                logger.success(
-                                    f'{self.session_name} | '
-                                    f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
-                                    f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
-                                    f'Money left: <e>{balance:,}</e>'
+                                status, upgrades = await buy_upgrade(
+                                    http_client=http_client, upgrade_id=upgrade_id
                                 )
 
-                                await asyncio.sleep(delay=1)
+                                if status is True:
+                                    earn_on_hour += profit
+                                    balance -= price
+                                    logger.success(
+                                        f'{self.session_name} | '
+                                        f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
+                                        f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
+                                        f'Money left: <e>{balance:,}</e>'
+                                    )
 
-                                continue
+                                    await asyncio.sleep(delay=1)
+
+                                    continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         boosts = await get_boosts(http_client=http_client)
