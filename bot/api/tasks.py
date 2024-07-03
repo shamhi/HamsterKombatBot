@@ -45,7 +45,7 @@ async def get_nuxt_builds(
     response_text = None
     try:
         response = await http_client.get(
-            url='https://hamsterkombat.io/_nuxt/builds/meta/32ddd2fc-00f7-4814-bc32-8f160963692c.json'
+            url='https://hamsterkombat.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json'
         )
         response_text = await response.text()
         response.raise_for_status()
