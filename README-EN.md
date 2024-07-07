@@ -25,10 +25,12 @@
 | **MAX_LEVEL**            | Maximum upgrade level _(eg 20)_                                                          |
 | **BALANCE_TO_SAVE**      | Balance limit that the bot “won't touch” _(eg 1000000)_                                  |
 | **UPGRADES_COUNT**       | The count of cards that the bot will upgrade in 1 lap _(eg 10)_                          |
+| **MAX_COMBO_PRICE**      | Maximum purchase price for buying combo cards with an available balance _(eg 10000000)_  |
 | **APPLY_DAILY_ENERGY**   | Whether to use the daily free energy boost _(True / False)_                              |
 | **APPLY_DAILY_TURBO**    | Whether to use the daily free turbo boost _(True / False)_                               |
 | **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg [50,200])_                                                    |
 | **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg [10,25])_                                      |
+| **USE_RANDOM_USERAGENT** | Whether to random User Agent every time to start _(True / False)_                        |
 | **USE_PROXY_FROM_FILE**  | Whether to use proxy from the `bot/config/proxies.txt` file (True / False)               |
 
 ## Quick Start 📚
