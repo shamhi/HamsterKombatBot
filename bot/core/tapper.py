@@ -133,19 +133,6 @@ class Tapper:
                                     and data['isExpired'] is False
                                     and data.get('cooldownSeconds', 0) == 0
                                     and data.get('maxLevel', data['level']) >= data['level']
-                                    and (
-                                           data.get('condition') is None
-                                           or (
-                                                   data['condition'].get('_type') == 'SubscribeTelegramChannel'
-                                                   and data['condition'].get('channelId')
-                                                   and (
-                                                       await check_participant_channel(
-                                                           tg_client=self.tg_client,
-                                                           chat_id=data['condition'].get('channelId')
-                                                           )
-                                                       ) is True
-                                              )
-                                       )
                                 ]
 
                             start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
@@ -165,7 +152,7 @@ class Tapper:
                                     logger.info(f"{self.session_name} | "
                                                 f"<r>Daily combo is not applicable</r>, you don't have enough coins. Need <y>{common_price:,}</y> coins, but your balance is <r>{balance:,}</r> coins")
 
-                                if common_price < bonus and balance > common_price and is_combo_accessible:
+                                if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible:
                                     for upgrade in available_combo_cards:
                                         upgrade_id = upgrade['id']
                                         level = upgrade['level']
@@ -304,19 +291,6 @@ class Tapper:
                                     and data['isExpired'] is False
                                     and data.get('cooldownSeconds', 0) == 0
                                     and data.get('maxLevel', data['level']) >= data['level']
-                                    and (
-                                               data.get('condition') is None
-                                               or (
-                                                       data['condition'].get('_type') == 'SubscribeTelegramChannel'
-                                                       and data['condition'].get('channelId')
-                                                       and (
-                                                           await check_participant_channel(
-                                                               tg_client=self.tg_client,
-                                                               chat_id=data['condition'].get('channelId')
-                                                           )
-                                                       ) is True
-                                               )
-                                       )
                                 ]
 
                                 queue = []
@@ -424,7 +398,7 @@ class Tapper:
                         )
 
                         logger.info(
-                            f'{self.session_name} | Minimum energy reached: <y>{available_energy}</y>'
+                            f'{self.session_name} | Minimum energy reached: <y>{available_energy:.0f}</y>'
                         )
                         logger.info(
                             f'{self.session_name} | Sleep {random_sleep:,}s'
