@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  packages: write
+
 env:
   REGISTRY: ghcr.io
 
@@ -13,6 +16,9 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -24,7 +30,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.TOKEN }}
 
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -35,10 +41,10 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.title=HamsterKombatBot
+            org.opencontainers.image.description=Bot that mines coins in HamsterKombat
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ github.sha }}
             org.opencontainers.image.revision=${{ github.sha }}
 
@@ -73,10 +79,10 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.title=HamsterKombatBot
+            org.opencontainers.image.description=Bot that mines coins in HamsterKombat
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ github.sha }}
             org.opencontainers.image.revision=${{ github.sha }}
 
@@ -84,5 +90,5 @@ jobs:
         if: success()
         uses: anchore/scan-action@v3
         with:
-          image: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
           fail-build: true
