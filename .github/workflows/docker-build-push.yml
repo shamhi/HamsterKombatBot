@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  contents: read
   packages: write
 
 env:
@@ -30,7 +31,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -39,14 +40,6 @@ jobs:
           load: true
           platforms: linux/amd64
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
-          labels: |
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.title=HamsterKombatBot
-            org.opencontainers.image.description=Bot that mines coins in HamsterKombat
-            org.opencontainers.image.url=https://github.com/${{ github.repository }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Create .env file
         run: |
@@ -77,14 +70,6 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
-          labels: |
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.title=HamsterKombatBot
-            org.opencontainers.image.description=Bot that mines coins in HamsterKombat
-            org.opencontainers.image.url=https://github.com/${{ github.repository }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Scan image for vulnerabilities
         if: success()
