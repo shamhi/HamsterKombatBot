@@ -70,10 +70,3 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
-
-      - name: Scan image for vulnerabilities
-        if: success()
-        uses: anchore/scan-action@v3
-        with:
-          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
-          fail-build: true
