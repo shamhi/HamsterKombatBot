@@ -43,7 +43,10 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
+      - name: Create .env file
+        run: |
+          echo "API_ID=12345" > .env
+          echo "API_HASH=12345" >> .env
       - name: Run container
         run: |
           docker compose up -d
