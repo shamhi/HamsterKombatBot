@@ -32,7 +32,7 @@ jobs:
           context: .
           load: true
           platforms: linux/amd64
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.title=${{ github.event.repository.name }}
@@ -70,7 +70,7 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/hamsterkombatbot:latest
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.title=${{ github.event.repository.name }}
