@@ -43,10 +43,12 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
       - name: Create .env file
         run: |
           echo "API_ID=12345" > .env
           echo "API_HASH=12345" >> .env
+
       - name: Run container
         run: |
           docker compose up -d
@@ -54,8 +56,11 @@ jobs:
 
       - name: Check container status
         run: |
-          container_status=$(docker compose ps --status running --format "{{.Status}}")
-          if [ "$container_status" != "running" ]; then
+          container_status=$(docker compose ps --status running --format "table {{.Name}}\t{{.Image}}\t{{.Command}}\t{{.Service}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}")
+          echo "$container_status"
+          if echo "$container_status" | grep -q "Up"; then
+            echo "Container is running. Proceeding."
+          else
             echo "Container is not running. Exiting."
             exit 1
           fi
