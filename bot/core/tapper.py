@@ -29,7 +29,6 @@ from bot.api.exchange import select_exchange
 from bot.api.tasks import get_nuxt_builds, get_tasks, get_airdrop_tasks, get_daily
 from bot.utils.scripts import decode_cipher, get_headers
 from bot.utils.tg_web_data import get_tg_web_data
-from bot.utils.tg_channel_check import check_participant_channel
 from bot.utils.proxy import check_proxy
 
 
@@ -46,8 +45,10 @@ class Tapper:
         headers = get_headers(name=self.tg_client.name)
 
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+
         http_client = aiohttp.ClientSession(
-            headers=headers, connector=proxy_conn
+            headers=headers,
+            connector=proxy_conn
         )
 
         if proxy:
@@ -78,6 +79,8 @@ class Tapper:
                     )
 
                 if time() - access_token_created_time >= 3600:
+                    http_client.headers.pop('Authorization', None)
+
                     await get_nuxt_builds(http_client=http_client)
 
                     access_token = await login(
@@ -128,11 +131,11 @@ class Tapper:
                                 available_combo_cards = [
                                     data for data in upgrades
                                     if data['isAvailable'] is True
-                                    and data['id'] in cards
-                                    and data['id'] not in upgraded_list
-                                    and data['isExpired'] is False
-                                    and data.get('cooldownSeconds', 0) == 0
-                                    and data.get('maxLevel', data['level']) >= data['level']
+                                       and data['id'] in cards
+                                       and data['id'] not in upgraded_list
+                                       and data['isExpired'] is False
+                                       and data.get('cooldownSeconds', 0) == 0
+                                       and data.get('maxLevel', data['level']) >= data['level']
                                 ]
 
                             start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
@@ -288,9 +291,9 @@ class Tapper:
                                     data
                                     for data in upgrades
                                     if data['isAvailable'] is True
-                                    and data['isExpired'] is False
-                                    and data.get('cooldownSeconds', 0) == 0
-                                    and data.get('maxLevel', data['level']) >= data['level']
+                                       and data['isExpired'] is False
+                                       and data.get('cooldownSeconds', 0) == 0
+                                       and data.get('maxLevel', data['level']) >= data['level']
                                 ]
 
                                 queue = []
