@@ -28,7 +28,5 @@ class Settings(BaseSettings):
 
     USE_RANDOM_USERAGENT: bool = False
 
-    USE_PROXY_FROM_FILE: bool = False
-
 
 settings = Settings()
