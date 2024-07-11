@@ -1,7 +1,6 @@
 import asyncio
 from urllib.parse import unquote
 
-from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.errors import (
     AuthKeyUnregistered,
@@ -13,22 +12,13 @@ from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.exceptions import InvalidSession
 from bot.utils.logger import logger
+from bot.utils.proxy import get_proxy_dict
 
 
 async def get_tg_web_data(
     tg_client: Client, proxy: str | None, session_name: str
 ) -> str:
-    if proxy:
-        proxy = Proxy.from_str(proxy)
-        proxy_dict = dict(
-            scheme=proxy.protocol,
-            hostname=proxy.host,
-            port=proxy.port,
-            username=proxy.login,
-            password=proxy.password,
-        )
-    else:
-        proxy_dict = None
+    proxy_dict = get_proxy_dict(proxy)
 
     tg_client.proxy = proxy_dict
 
