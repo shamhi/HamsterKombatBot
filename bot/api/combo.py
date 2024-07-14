@@ -19,7 +19,7 @@ async def claim_daily_combo(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/claim-daily-combo',
+        'https://api.hamsterkombatgame.io/clicker/claim-daily-combo',
         {},
         'Claim Daily Combo',
     )
