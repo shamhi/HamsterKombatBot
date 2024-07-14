@@ -6,7 +6,7 @@
 > 🇷🇺 README на русском доступен [здесь](README.md)
 
 ## ⚙ [Settings](https://github.com/shamhi/HamsterKombatBot/blob/main/.env-example)
-| Настройка                | Описание                                                                                 |
+| Setting                  | Description                                                                              |
 |--------------------------|------------------------------------------------------------------------------------------|
 | **API_ID / API_HASH**    | Platform data from which to launch a Telegram session _(stock - Android)_                |
 | **MIN_AVAILABLE_ENERGY** | Minimum amount of available energy, upon reaching which there will be a delay _(eg 100)_ |
