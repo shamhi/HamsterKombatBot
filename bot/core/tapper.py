@@ -127,16 +127,15 @@ class Tapper:
                             cards = combo_cards['combo']
                             date = combo_cards['date']
 
-                            async with self.tg_client:
-                                available_combo_cards = [
-                                    data for data in upgrades
-                                    if data['isAvailable'] is True
-                                       and data['id'] in cards
-                                       and data['id'] not in upgraded_list
-                                       and data['isExpired'] is False
-                                       and data.get('cooldownSeconds', 0) == 0
-                                       and data.get('maxLevel', data['level']) >= data['level']
-                                ]
+                            available_combo_cards = [
+                                data for data in upgrades
+                                if data['isAvailable'] is True
+                                and data['id'] in cards
+                                and data['id'] not in upgraded_list
+                                and data['isExpired'] is False
+                                and data.get('cooldownSeconds', 0) == 0
+                                and data.get('maxLevel', data['level']) >= data['level']
+                            ]
 
                             start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
                             end_bonus_round = start_bonus_round + timedelta(days=1)
@@ -285,75 +284,74 @@ class Tapper:
 
                 if active_turbo is False:
                     if settings.AUTO_UPGRADE is True:
-                        async with self.tg_client:
-                            for _ in range(settings.UPGRADES_COUNT):
-                                available_upgrades = [
-                                    data
-                                    for data in upgrades
-                                    if data['isAvailable'] is True
-                                       and data['isExpired'] is False
-                                       and data.get('cooldownSeconds', 0) == 0
-                                       and data.get('maxLevel', data['level']) >= data['level']
-                                ]
+                        for _ in range(settings.UPGRADES_COUNT):
+                            available_upgrades = [
+                                data
+                                for data in upgrades
+                                if data['isAvailable'] is True
+                                and data['isExpired'] is False
+                                and data.get('cooldownSeconds', 0) == 0
+                                and data.get('maxLevel', data['level']) >= data['level']
+                            ]
 
-                                queue = []
+                            queue = []
 
-                                for upgrade in available_upgrades:
-                                    upgrade_id = upgrade['id']
-                                    level = upgrade['level']
-                                    price = upgrade['price']
-                                    profit = upgrade['profitPerHourDelta']
-
-                                    significance = profit / max(price, 1)
-
-                                    free_money = balance - settings.BALANCE_TO_SAVE
-                                    max_price_limit = earn_on_hour * 5
-
-                                    if (
-                                            (free_money * 0.7) >= price
-                                            and level <= settings.MAX_LEVEL
-                                            and profit > 0
-                                            and price < max_price_limit
-                                    ):
-                                        heapq.heappush(
-                                            queue,
-                                            (-significance, upgrade_id, upgrade),
-                                        )
-
-                                if not queue:
-                                    continue
-
-                                top_card = heapq.nsmallest(1, queue)[0]
-
-                                upgrade = top_card[2]
-
+                            for upgrade in available_upgrades:
                                 upgrade_id = upgrade['id']
                                 level = upgrade['level']
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                logger.info(
-                                    f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
-                                )
-                                await asyncio.sleep(delay=5)
+                                significance = profit / max(price, 1)
 
-                                status, upgrades = await buy_upgrade(
-                                    http_client=http_client, upgrade_id=upgrade_id
-                                )
+                                free_money = balance - settings.BALANCE_TO_SAVE
+                                max_price_limit = earn_on_hour * 5
 
-                                if status is True:
-                                    earn_on_hour += profit
-                                    balance -= price
-                                    logger.success(
-                                        f'{self.session_name} | '
-                                        f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
-                                        f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
-                                        f'Money left: <e>{balance:,}</e>'
+                                if (
+                                        (free_money * 0.7) >= price
+                                        and level <= settings.MAX_LEVEL
+                                        and profit > 0
+                                        and price < max_price_limit
+                                ):
+                                    heapq.heappush(
+                                        queue,
+                                        (-significance, upgrade_id, upgrade),
                                     )
 
-                                    await asyncio.sleep(delay=1)
+                            if not queue:
+                                continue
 
-                                    continue
+                            top_card = heapq.nsmallest(1, queue)[0]
+
+                            upgrade = top_card[2]
+
+                            upgrade_id = upgrade['id']
+                            level = upgrade['level']
+                            price = upgrade['price']
+                            profit = upgrade['profitPerHourDelta']
+
+                            logger.info(
+                                f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
+                            )
+                            await asyncio.sleep(delay=5)
+
+                            status, upgrades = await buy_upgrade(
+                                http_client=http_client, upgrade_id=upgrade_id
+                            )
+
+                            if status is True:
+                                earn_on_hour += profit
+                                balance -= price
+                                logger.success(
+                                    f'{self.session_name} | '
+                                    f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
+                                    f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
+                                    f'Money left: <e>{balance:,}</e>'
+                                )
+
+                                await asyncio.sleep(delay=1)
+
+                                continue
 
                     if available_energy < settings.MIN_AVAILABLE_ENERGY:
                         boosts = await get_boosts(http_client=http_client)
