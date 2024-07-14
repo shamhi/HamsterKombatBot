@@ -1,7 +1,7 @@
-import asyncio
 import heapq
-from random import randint
+import asyncio
 from time import time
+from random import randint
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -13,7 +13,6 @@ from bot.api.telegram import get_me_telegram
 from bot.config import settings
 from bot.utils.logger import logger
 from bot.exceptions import InvalidSession
-
 from bot.api.auth import login
 from bot.api.clicker import (
     apply_boost,

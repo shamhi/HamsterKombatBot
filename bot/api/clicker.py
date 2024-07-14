@@ -1,14 +1,17 @@
 from time import time
 from typing import Any
+
 import aiohttp
-from bot.api.http import make_post_request
+
+from bot.api.http import make_request
 
 
 async def get_config(
-    http_client: aiohttp.ClientSession,
+        http_client: aiohttp.ClientSession,
 ) -> dict[Any, Any] | Any:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/config',
         {},
         'getting Config',
@@ -18,8 +21,9 @@ async def get_config(
 
 async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
     while True:
-        response_json = await make_post_request(
+        response_json = await make_request(
             http_client,
+            'POST',
             'https://api.hamsterkombat.io/clicker/sync',
             {},
             'getting Profile Data',
@@ -33,8 +37,9 @@ async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
 
 
 async def get_upgrades(http_client: aiohttp.ClientSession) -> dict:
-    return await make_post_request(
+    return await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/upgrades-for-buy',
         {},
         'getting Upgrades',
@@ -42,10 +47,11 @@ async def get_upgrades(http_client: aiohttp.ClientSession) -> dict:
 
 
 async def buy_upgrade(
-    http_client: aiohttp.ClientSession, upgrade_id: str
+        http_client: aiohttp.ClientSession, upgrade_id: str
 ) -> tuple[bool, Any] | tuple[bool, None]:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/buy-upgrade',
         {'timestamp': time(), 'upgradeId': upgrade_id},
         'buying Upgrade',
@@ -58,8 +64,9 @@ async def buy_upgrade(
 
 
 async def get_boosts(http_client: aiohttp.ClientSession) -> list[dict]:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/boosts-for-buy',
         {},
         'getting Boosts',
@@ -69,10 +76,11 @@ async def get_boosts(http_client: aiohttp.ClientSession) -> list[dict]:
 
 
 async def claim_daily_cipher(
-    http_client: aiohttp.ClientSession, cipher: str
+        http_client: aiohttp.ClientSession, cipher: str
 ) -> bool:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/claim-daily-cipher',
         {'cipher': cipher},
         'Claim Daily Cipher',
@@ -81,10 +89,11 @@ async def claim_daily_cipher(
 
 
 async def send_taps(
-    http_client: aiohttp.ClientSession, available_energy: int, taps: int
+        http_client: aiohttp.ClientSession, available_energy: int, taps: int
 ) -> dict[Any, Any] | Any:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/tap',
         {
             'availableTaps': available_energy,
@@ -101,10 +110,11 @@ async def send_taps(
 
 
 async def apply_boost(
-    http_client: aiohttp.ClientSession, boost_id: str
+        http_client: aiohttp.ClientSession, boost_id: str
 ) -> bool:
-    response_json = await make_post_request(
+    response_json = await make_request(
         http_client,
+        'POST',
         'https://api.hamsterkombat.io/clicker/buy-boost',
         {'timestamp': time(), 'boostId': boost_id},
         'Apply Boost',

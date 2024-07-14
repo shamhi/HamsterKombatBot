@@ -1,21 +1,23 @@
-import asyncio
 import json
+import asyncio
 
 import aiohttp
+
 from bot.utils.logger import logger
 from bot.utils.scripts import escape_html
 
 
-async def make_post_request(
-    http_client: aiohttp.ClientSession,
-    url: str,
-    json_data: dict,
-    error_context: str,
-    ignore_status: int | None = None,
+async def make_request(
+        http_client: aiohttp.ClientSession,
+        method: str,
+        url: str,
+        json_data: dict,
+        error_context: str,
+        ignore_status: int | None = None,
 ) -> dict:
     response_text = ''
     try:
-        response = await http_client.post(url=url, json=json_data)
+        response = await http_client.request(method=method, url=url, json=json_data)
         response_text = await response.text()
         if ignore_status is None or response.status != ignore_status:
             response.raise_for_status()
