@@ -57,7 +57,7 @@ async def get_tg_web_data(
                 bot=peer,
                 platform='android',
                 from_bot_menu=False,
-                url='https://hamsterkombat.io/',
+                url='https://hamsterkombatgame.io/',
             )
         )
 

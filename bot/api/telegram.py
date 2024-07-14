@@ -11,7 +11,7 @@ async def get_me_telegram(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/auth/me-telegram',
+        'https://api.hamsterkombatgame.io/auth/me-telegram',
         {},
         'getting Me Telegram',
     )

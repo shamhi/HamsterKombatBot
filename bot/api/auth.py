@@ -12,7 +12,7 @@ async def login(
         response_json = await make_request(
             http_client,
             'POST',
-            'https://api.hamsterkombat.io/auth/auth-by-telegram-webapp',
+            'https://api.hamsterkombatgame.io/auth/auth-by-telegram-webapp',
             {'initDataRaw': tg_web_data, 'fingerprint': fingerprint},
             'getting Access Token',
         )

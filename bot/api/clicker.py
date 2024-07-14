@@ -12,7 +12,7 @@ async def get_config(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/config',
+        'https://api.hamsterkombatgame.io/clicker/config',
         {},
         'getting Config',
     )
@@ -24,7 +24,7 @@ async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
         response_json = await make_request(
             http_client,
             'POST',
-            'https://api.hamsterkombat.io/clicker/sync',
+            'https://api.hamsterkombatgame.io/clicker/sync',
             {},
             'getting Profile Data',
             ignore_status=422,
@@ -40,7 +40,7 @@ async def get_upgrades(http_client: aiohttp.ClientSession) -> dict:
     return await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/upgrades-for-buy',
+        'https://api.hamsterkombatgame.io/clicker/upgrades-for-buy',
         {},
         'getting Upgrades',
     )
@@ -52,7 +52,7 @@ async def buy_upgrade(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/buy-upgrade',
+        'https://api.hamsterkombatgame.io/clicker/buy-upgrade',
         {'timestamp': time(), 'upgradeId': upgrade_id},
         'buying Upgrade',
         ignore_status=422,
@@ -67,7 +67,7 @@ async def get_boosts(http_client: aiohttp.ClientSession) -> list[dict]:
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/boosts-for-buy',
+        'https://api.hamsterkombatgame.io/clicker/boosts-for-buy',
         {},
         'getting Boosts',
     )
@@ -81,7 +81,7 @@ async def claim_daily_cipher(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/claim-daily-cipher',
+        'https://api.hamsterkombatgame.io/clicker/claim-daily-cipher',
         {'cipher': cipher},
         'Claim Daily Cipher',
     )
@@ -94,7 +94,7 @@ async def send_taps(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/tap',
+        'https://api.hamsterkombatgame.io/clicker/tap',
         {
             'availableTaps': available_energy,
             'count': taps,
@@ -115,7 +115,7 @@ async def apply_boost(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/buy-boost',
+        'https://api.hamsterkombatgame.io/clicker/buy-boost',
         {'timestamp': time(), 'boostId': boost_id},
         'Apply Boost',
     )
