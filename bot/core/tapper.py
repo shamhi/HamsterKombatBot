@@ -103,8 +103,8 @@ class Tapper:
                     last_passive_earn = profile_data['lastPassiveEarn']
                     earn_on_hour = profile_data['earnPassivePerHour']
 
-                    logger.info(f'{self.session_name} | Last passive earn: <g>+{last_passive_earn:,}</g> | '
-                                f'Earn every hour: <y>{earn_on_hour:,}</y>')
+                    logger.info(f'{self.session_name} | Last passive earn: <lg>+{last_passive_earn:,}</lg> | '
+                                f'Earn every hour: <ly>{earn_on_hour:,}</ly>')
 
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
@@ -147,11 +147,11 @@ class Tapper:
 
                                 if not is_combo_accessible:
                                     logger.info(f"{self.session_name} | "
-                                                f"<r>Daily combo is not applicable</r>, you can only purchase {possible_cards_count} of {need_cards_count} cards")
+                                                f"<lr>Daily combo is not applicable</lr>, you can only purchase {possible_cards_count} of {need_cards_count} cards")
 
                                 if balance < common_price:
                                     logger.info(f"{self.session_name} | "
-                                                f"<r>Daily combo is not applicable</r>, you don't have enough coins. Need <y>{common_price:,}</y> coins, but your balance is <r>{balance:,}</r> coins")
+                                                f"<lr>Daily combo is not applicable</lr>, you don't have enough coins. Need <ly>{common_price:,}</ly> coins, but your balance is <lr>{balance:,}</lr> coins")
 
                                 if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible:
                                     for upgrade in available_combo_cards:
@@ -162,7 +162,7 @@ class Tapper:
 
                                         logger.info(
                                             f'{self.session_name} | '
-                                            f'Sleep 5s before upgrade <r>combo</r> card <e>{upgrade_id}</e>'
+                                            f'Sleep 5s before upgrade <lr>combo</lr> card <le>{upgrade_id}</le>'
                                         )
 
                                         await asyncio.sleep(delay=5)
@@ -177,9 +177,9 @@ class Tapper:
                                             balance -= price
                                             logger.success(
                                                 f'{self.session_name} | '
-                                                f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
-                                                f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
-                                                f'Money left: <e>{balance:,}</e>'
+                                                f'Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | '
+                                                f'Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | '
+                                                f'Money left: <le>{balance:,}</le>'
                                             )
 
                                             await asyncio.sleep(delay=1)
@@ -192,7 +192,7 @@ class Tapper:
                                     if status is True:
                                         logger.success(
                                             f'{self.session_name} | Successfully claimed daily combo | '
-                                            f'Bonus: <g>+{bonus:,}</g>'
+                                            f'Bonus: <lg>+{bonus:,}</lg>'
                                         )
 
                     tasks = await get_tasks(http_client=http_client)
@@ -209,7 +209,7 @@ class Tapper:
                         if status is True:
                             logger.success(
                                 f'{self.session_name} | Successfully get daily reward | '
-                                f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}"
+                                f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>"
                             )
 
                     await asyncio.sleep(delay=2)
@@ -233,8 +233,8 @@ class Tapper:
                             if status is True:
                                 logger.success(
                                     f'{self.session_name} | '
-                                    f'Successfully claim daily cipher: <y>{decoded_cipher}</y> | '
-                                    f'Bonus: <g>+{bonus:,}</g>'
+                                    f'Successfully claim daily cipher: <ly>{decoded_cipher}</ly> | '
+                                    f'Bonus: <lg>+{bonus:,}</lg>'
                                 )
 
                         await asyncio.sleep(delay=2)
@@ -246,7 +246,7 @@ class Tapper:
                         )
                         if status is True:
                             logger.success(
-                                f'{self.session_name} | Successfully selected exchange <y>Bybit</y>'
+                                f'{self.session_name} | Successfully selected exchange <ly>Bybit</ly>'
                             )
 
                 taps = randint(
@@ -278,7 +278,7 @@ class Tapper:
 
                 logger.success(
                     f'{self.session_name} | Successful tapped! | '
-                    f'Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>'
+                    f'Balance: <c>{balance:,}</c> (<lg>+{calc_taps:,}</lg>) | Total: <le>{total:,}</le>'
                 )
 
                 if active_turbo is False:
@@ -330,7 +330,7 @@ class Tapper:
                             profit = upgrade['profitPerHourDelta']
 
                             logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <e>{upgrade_id}</e>'
+                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le>'
                             )
                             await asyncio.sleep(delay=5)
 
@@ -343,9 +343,9 @@ class Tapper:
                                 balance -= price
                                 logger.success(
                                     f'{self.session_name} | '
-                                    f'Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | '
-                                    f'Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | '
-                                    f'Money left: <e>{balance:,}</e>'
+                                    f'Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | '
+                                    f'Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | '
+                                    f'Money left: <le>{balance:,}</le>'
                                 )
 
                                 await asyncio.sleep(delay=1)
@@ -398,7 +398,7 @@ class Tapper:
                         )
 
                         logger.info(
-                            f'{self.session_name} | Minimum energy reached: <y>{available_energy:.0f}</y>'
+                            f'{self.session_name} | Minimum energy reached: <ly>{available_energy:.0f}</ly>'
                         )
                         logger.info(
                             f'{self.session_name} | Sleep {random_sleep:,}s'
