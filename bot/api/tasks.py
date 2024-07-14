@@ -11,7 +11,7 @@ async def get_tasks(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/list-tasks',
+        'https://api.hamsterkombatgame.io/clicker/list-tasks',
         {},
         'getting Tasks',
     )
@@ -25,7 +25,7 @@ async def get_airdrop_tasks(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/list-airdrop-tasks',
+        'https://api.hamsterkombatgame.io/clicker/list-airdrop-tasks',
         {},
         'getting Airdrop Tasks',
     )
@@ -37,7 +37,7 @@ async def get_daily(http_client: aiohttp.ClientSession) -> bool:
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/check-task',
+        'https://api.hamsterkombatgame.io/clicker/check-task',
         {'taskId': 'streak_days'},
         'getting Daily',
     )
@@ -52,7 +52,7 @@ async def get_nuxt_builds(
         response_json = await make_request(
             http_client,
             'GET',
-            'https://hamsterkombat.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json',
+            'https://hamsterkombatgame.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json',
             None,
             'getting Nuxt Builds'
         )

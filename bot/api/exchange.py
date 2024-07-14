@@ -9,7 +9,7 @@ async def select_exchange(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombat.io/clicker/select-exchange',
+        'https://api.hamsterkombatgame.io/clicker/select-exchange',
         {'exchangeId': exchange_id},
         'Select Exchange',
     )
