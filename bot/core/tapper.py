@@ -304,7 +304,6 @@ class Tapper:
                                 match settings.BUY_MODE:
                                     case 0:
                                         significance = -(profit / max(price, 1))
-                                        #significance = -significance
                                     case 1:
                                         significance = price / max(profit, 1)
                                         if significance > settings.PURCHASE_RATIO:
@@ -314,6 +313,10 @@ class Tapper:
 
                                 free_money = balance - settings.BALANCE_TO_SAVE
                                 max_price_limit = earn_on_hour * 5
+
+                                #logger.info(
+                                    #f'{self.session_name} | Significance (<g>{upgrade_id}</g>)'
+                                #)
 
                                 if (
                                         (free_money * 0.7) >= price
@@ -337,9 +340,10 @@ class Tapper:
                             level = upgrade['level']
                             price = upgrade['price']
                             profit = upgrade['profitPerHourDelta']
+                            ratio = price /max(price, 1)
 
                             logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le>'
+                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le> | Ratio (<g>ratio:,</g>)'
                             )
                             await asyncio.sleep(delay=5)
 
