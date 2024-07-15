@@ -301,7 +301,16 @@ class Tapper:
                                 price = upgrade['price']
                                 profit = upgrade['profitPerHourDelta']
 
-                                significance = profit / max(price, 1)
+                                match settings.BUY_MODE:
+                                    case 0:
+                                        significance = -(profit / max(price, 1))
+                                        #significance = -significance
+                                    case 1:
+                                        significance = price / max(profit, 1)
+                                        if significance > settings.PURCHASE_RATIO:
+                                            profit = 0
+                                    case 2:
+                                        significance = price
 
                                 free_money = balance - settings.BALANCE_TO_SAVE
                                 max_price_limit = earn_on_hour * 5
@@ -314,7 +323,7 @@ class Tapper:
                                 ):
                                     heapq.heappush(
                                         queue,
-                                        (-significance, upgrade_id, upgrade),
+                                        (significance, upgrade_id, upgrade),
                                     )
 
                             if not queue:

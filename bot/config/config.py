@@ -20,6 +20,10 @@ class Settings(BaseSettings):
 
     MAX_COMBO_PRICE: int = 10000000
 
+    BUY_MODE: int = 0
+
+    PURCHASE_RATIO: int = 240
+
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
 
