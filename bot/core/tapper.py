@@ -314,10 +314,6 @@ class Tapper:
                                 free_money = balance - settings.BALANCE_TO_SAVE
                                 max_price_limit = earn_on_hour * 5
 
-                                #logger.info(
-                                    #f'{self.session_name} | Significance (<g>{upgrade_id}</g>)'
-                                #)
-
                                 if (
                                         (free_money * 0.7) >= price
                                         and level <= settings.MAX_LEVEL
@@ -340,10 +336,10 @@ class Tapper:
                             level = upgrade['level']
                             price = upgrade['price']
                             profit = upgrade['profitPerHourDelta']
-                            ratio = price /max(price, 1)
+                            ratio = round(price / max(profit, 1), 2)
 
                             logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le> | Ratio (<g>ratio:,</g>)'
+                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le> | Ratio payback <g>{ratio}</g>({float_to_time(ratio)})'
                             )
                             await asyncio.sleep(delay=5)
 
@@ -446,3 +442,9 @@ async def run_tapper(tg_client: Client, proxy: str | None):
         await Tapper(tg_client=tg_client).run(proxy=proxy)
     except InvalidSession:
         logger.error(f'{tg_client.name} | Invalid Session')
+
+def float_to_time(float_num):
+    days = int(float_num / 24)
+    hours = int(float_num % 24)
+    dt = str(days)+"d:"+str(hours)+"h"
+    return dt
