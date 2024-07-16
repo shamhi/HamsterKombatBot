@@ -24,6 +24,9 @@ class Settings(BaseSettings):
 
     PURCHASE_RATIO: int = 240
 
+    SLEEP_ON: int = 1
+    SLEEP_TIME: int = 6
+
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
 

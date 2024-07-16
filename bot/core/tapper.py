@@ -409,11 +409,20 @@ class Tapper:
                         logger.info(
                             f'{self.session_name} | Minimum energy reached: <ly>{available_energy:.0f}</ly>'
                         )
-                        logger.info(
-                            f'{self.session_name} | Sleep {random_sleep // 60}m'
-                        )
 
-                        await asyncio.sleep(delay=random_sleep)
+                        hour = (datetime.now()).hour
+                        if hour >= settings.SLEEP_ON and hour <= settings.SLEEP_ON + settings.SLEEP_TIME:
+                            s_time = settings.SLEEP_TIME * 3600
+                            logger.info(
+                                f'{self.session_name} | Sleep time {s_time // 3600}h'
+                            )
+                            await asyncio.sleep(delay=s_time)
+                        else:
+                            logger.info(
+                                f'{self.session_name} | Sleep {random_sleep // 60}m'
+                            )
+
+                            await asyncio.sleep(delay=random_sleep)
 
                         access_token_created_time = 0
 
