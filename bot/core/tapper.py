@@ -411,7 +411,7 @@ class Tapper:
                         )
 
                         hour = (datetime.now()).hour
-                        if hour >= settings.SLEEP_ON and hour <= settings.SLEEP_ON + settings.SLEEP_TIME:
+                        if hour >= settings.SLEEP_ON and hour < settings.SLEEP_ON + settings.SLEEP_TIME:
                             s_time = settings.SLEEP_TIME * 3600
                             logger.info(
                                 f'{self.session_name} | Sleep time {s_time // 3600}h'
