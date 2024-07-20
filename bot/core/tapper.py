@@ -9,11 +9,10 @@ from aiohttp_proxy import ProxyConnector
 from pyrogram import Client
 
 from bot.api.combo import claim_daily_combo, get_combo_cards
-from bot.api.telegram import get_me_telegram
 from bot.config import settings
 from bot.utils.logger import logger
 from bot.exceptions import InvalidSession
-from bot.api.auth import login
+from bot.api.auth import login, get_account_info
 from bot.api.clicker import (
     apply_boost,
     get_profile_data,
@@ -24,6 +23,8 @@ from bot.api.clicker import (
     send_taps,
     get_config,
 )
+from bot.api.mini_game import start_daily_mini_game, claim_daily_mini_game
+from bot.api.ip import get_ip_info
 from bot.api.exchange import select_exchange
 from bot.api.tasks import get_nuxt_builds, get_tasks, get_airdrop_tasks, get_daily
 from bot.utils.scripts import decode_cipher, get_headers
@@ -95,10 +96,21 @@ class Tapper:
 
                     access_token_created_time = time()
 
-                    await get_me_telegram(http_client=http_client)
-                    game_config = await get_config(http_client=http_client)
-
+                    account_info = await get_account_info(http_client=http_client)
                     profile_data = await get_profile_data(http_client=http_client)
+                    game_config = await get_config(http_client=http_client)
+                    upgrades_data = await get_upgrades(http_client=http_client)
+                    tasks = await get_tasks(http_client=http_client)
+                    airdrop_tasks = await get_airdrop_tasks(http_client=http_client)
+                    ip_info = await get_ip_info(http_client=http_client)
+
+                    ip = ip_info.get('ip', 'NO')
+                    country_code = ip_info.get('country_code', 'NO')
+                    city_name = ip_info.get('city_name', 'NO')
+                    asn_org = ip_info.get('asn_org', 'NO')
+
+                    logger.info(f"{self.session_name} | IP: <lw>{ip}</lw> | Country: <le>{country_code}</le> | "
+                                f"City: <lc>{city_name}</lc> | Network Provider: <lg>{asn_org}</lg>")
 
                     last_passive_earn = profile_data['lastPassiveEarn']
                     earn_on_hour = profile_data['earnPassivePerHour']
@@ -108,8 +120,6 @@ class Tapper:
 
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
-
-                    upgrades_data = await get_upgrades(http_client=http_client)
 
                     upgrades = upgrades_data['upgradesForBuy']
                     daily_combo = upgrades_data.get('dailyCombo')
@@ -195,8 +205,6 @@ class Tapper:
                                             f'Bonus: <lg>+{bonus:,}</lg>'
                                         )
 
-                    tasks = await get_tasks(http_client=http_client)
-
                     daily_task = tasks[-1]
                     rewards = daily_task['rewardsByDays']
                     is_completed = daily_task['isCompleted']
@@ -211,10 +219,6 @@ class Tapper:
                                 f'{self.session_name} | Successfully get daily reward | '
                                 f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>"
                             )
-
-                    await asyncio.sleep(delay=2)
-
-                    airdrop_tasks = await get_airdrop_tasks(http_client=http_client)
 
                     await asyncio.sleep(delay=2)
 
@@ -238,6 +242,22 @@ class Tapper:
                                 )
 
                         await asyncio.sleep(delay=2)
+
+                    # daily_mini_game = game_config.get('dailyKeysMiniGame')
+                    # if daily_mini_game:
+                    #     is_claimed = daily_mini_game['isClaimed']
+                    #     answer_keys = daily_mini_game['levelConfig']
+                    #     seconds_to_next_attempt = daily_mini_game['remainSecondsToNextAttempt']
+                    #     cipher = ''
+                    #
+                    #     if not is_claimed and seconds_to_next_attempt <= 0:
+                    #         await start_daily_mini_game(http_client=http_client)
+                    #
+                    #         await asyncio.sleep(delay=randint(18, 26))
+                    #
+                    #         await claim_daily_mini_game(http_client=http_client, cipher=cipher)
+
+                    await asyncio.sleep(delay=2)
 
                     exchange_id = profile_data.get('exchangeId')
                     if not exchange_id:
