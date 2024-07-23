@@ -27,7 +27,7 @@ from bot.api.mini_game import start_daily_mini_game, claim_daily_mini_game
 from bot.api.ip import get_ip_info
 from bot.api.exchange import select_exchange
 from bot.api.tasks import get_nuxt_builds, get_tasks, get_airdrop_tasks, get_daily
-from bot.utils.scripts import decode_cipher, get_headers
+from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher
 from bot.utils.tg_web_data import get_tg_web_data
 from bot.utils.proxy import check_proxy
 
@@ -39,30 +39,22 @@ class Tapper:
 
     async def run(self, proxy: str | None) -> None:
         access_token_created_time = 0
-        turbo_time = 0
-        active_turbo = False
+
+        if settings.USE_RANDOM_DELAY_IN_RUN:
+            random_delay = randint(settings.RANDOM_DELAY_IN_RUN[0], settings.RANDOM_DELAY_IN_RUN[1])
+            logger.info(f"{self.tg_client.name} | Run for <lw>{random_delay}s</lw>")
+
+            await asyncio.sleep(delay=random_delay)
 
         headers = get_headers(name=self.tg_client.name)
-
         proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
 
-        http_client = aiohttp.ClientSession(
-            headers=headers,
-            connector=proxy_conn
-        )
+        http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
         if proxy:
-            await check_proxy(
-                http_client=http_client,
-                proxy=proxy,
-                session_name=self.session_name,
-            )
+            await check_proxy(http_client=http_client, proxy=proxy, session_name=self.session_name)
 
-        tg_web_data = await get_tg_web_data(
-            tg_client=self.tg_client,
-            proxy=proxy,
-            session_name=self.session_name,
-        )
+        tg_web_data = await get_tg_web_data(tg_client=self.tg_client, proxy=proxy, session_name=self.session_name)
 
         while True:
             try:
@@ -71,12 +63,8 @@ class Tapper:
                         if not proxy_conn.closed:
                             proxy_conn.close()
 
-                    proxy_conn = (
-                        ProxyConnector().from_url(proxy) if proxy else None
-                    )
-                    http_client = aiohttp.ClientSession(
-                        headers=headers, connector=proxy_conn
-                    )
+                    proxy_conn = (ProxyConnector().from_url(proxy) if proxy else None)
+                    http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
                 if time() - access_token_created_time >= 3600:
                     http_client.headers.pop('Authorization', None)
@@ -92,7 +80,7 @@ class Tapper:
                     if not access_token:
                         continue
 
-                    http_client.headers['Authorization'] = f'Bearer {access_token}'
+                    http_client.headers['Authorization'] = f"Bearer {access_token}"
 
                     access_token_created_time = time()
 
@@ -112,11 +100,12 @@ class Tapper:
                     logger.info(f"{self.session_name} | IP: <lw>{ip}</lw> | Country: <le>{country_code}</le> | "
                                 f"City: <lc>{city_name}</lc> | Network Provider: <lg>{asn_org}</lg>")
 
-                    last_passive_earn = profile_data['lastPassiveEarn']
-                    earn_on_hour = profile_data['earnPassivePerHour']
+                    last_passive_earn = int(profile_data.get('lastPassiveEarn', 0))
+                    earn_on_hour = int(profile_data.get('earnPassivePerHour', 0))
+                    total_keys = profile_data.get('totalKeys', 0)
 
-                    logger.info(f'{self.session_name} | Last passive earn: <lg>+{last_passive_earn:,}</lg> | '
-                                f'Earn every hour: <ly>{earn_on_hour:,}</ly>')
+                    logger.info(f"{self.session_name} | Last passive earn: <lg>+{last_passive_earn:,}</lg> | "
+                                f"Earn every hour: <ly>{earn_on_hour:,}</ly> | Total keys: <le>{total_keys}</le>")
 
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
@@ -129,9 +118,7 @@ class Tapper:
                         upgraded_list = daily_combo['upgradeIds']
 
                         if not is_claimed:
-                            combo_cards = await get_combo_cards(
-                                http_client=http_client
-                            )
+                            combo_cards = await get_combo_cards(http_client=http_client)
 
                             cards = combo_cards['combo']
                             date = combo_cards['date']
@@ -170,40 +157,30 @@ class Tapper:
                                         price = upgrade['price']
                                         profit = upgrade['profitPerHourDelta']
 
-                                        logger.info(
-                                            f'{self.session_name} | '
-                                            f'Sleep 5s before upgrade <lr>combo</lr> card <le>{upgrade_id}</le>'
-                                        )
+                                        logger.info(f"{self.session_name} | "
+                                                    f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_id}</le>")
 
                                         await asyncio.sleep(delay=5)
 
-                                        status, upgrades = await buy_upgrade(
-                                            http_client=http_client,
-                                            upgrade_id=upgrade_id,
-                                        )
+                                        status, upgrades = await buy_upgrade(http_client=http_client,
+                                                                             upgrade_id=upgrade_id)
 
                                         if status is True:
                                             earn_on_hour += profit
                                             balance -= price
-                                            logger.success(
-                                                f'{self.session_name} | '
-                                                f'Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | '
-                                                f'Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | '
-                                                f'Money left: <le>{balance:,}</le>'
-                                            )
+                                            logger.success(f"{self.session_name} | "
+                                                           f"Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
+                                                           f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | "
+                                                           f"Money left: <le>{balance:,}</le>")
 
                                             await asyncio.sleep(delay=1)
 
                                     await asyncio.sleep(delay=2)
 
-                                    status = await claim_daily_combo(
-                                        http_client=http_client
-                                    )
+                                    status = await claim_daily_combo(http_client=http_client)
                                     if status is True:
-                                        logger.success(
-                                            f'{self.session_name} | Successfully claimed daily combo | '
-                                            f'Bonus: <lg>+{bonus:,}</lg>'
-                                        )
+                                        logger.success(f"{self.session_name} | Successfully claimed daily combo | "
+                                                       f"Bonus: <lg>+{bonus:,}</lg>")
 
                     daily_task = tasks[-1]
                     rewards = daily_task['rewardsByDays']
@@ -215,10 +192,8 @@ class Tapper:
                     if is_completed is False:
                         status = await get_daily(http_client=http_client)
                         if status is True:
-                            logger.success(
-                                f'{self.session_name} | Successfully get daily reward | '
-                                f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>"
-                            )
+                            logger.success(f"{self.session_name} | Successfully get daily reward | "
+                                           f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>")
 
                     await asyncio.sleep(delay=2)
 
@@ -231,220 +206,182 @@ class Tapper:
                         if not is_claimed and cipher:
                             decoded_cipher = decode_cipher(cipher=cipher)
 
-                            status = await claim_daily_cipher(
-                                http_client=http_client, cipher=decoded_cipher
-                            )
+                            status = await claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
                             if status is True:
-                                logger.success(
-                                    f'{self.session_name} | '
-                                    f'Successfully claim daily cipher: <ly>{decoded_cipher}</ly> | '
-                                    f'Bonus: <lg>+{bonus:,}</lg>'
-                                )
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully claim daily cipher: <ly>{decoded_cipher}</ly> | "
+                                               f"Bonus: <lg>+{bonus:,}</lg>")
 
                         await asyncio.sleep(delay=2)
 
-                    # daily_mini_game = game_config.get('dailyKeysMiniGame')
-                    # if daily_mini_game:
-                    #     is_claimed = daily_mini_game['isClaimed']
-                    #     answer_keys = daily_mini_game['levelConfig']
-                    #     seconds_to_next_attempt = daily_mini_game['remainSecondsToNextAttempt']
-                    #     cipher = ''
-                    #
-                    #     if not is_claimed and seconds_to_next_attempt <= 0:
-                    #         await start_daily_mini_game(http_client=http_client)
-                    #
-                    #         await asyncio.sleep(delay=randint(18, 26))
-                    #
-                    #         await claim_daily_mini_game(http_client=http_client, cipher=cipher)
+                    daily_mini_game = game_config.get('dailyKeysMiniGame')
+                    if daily_mini_game:
+                        is_claimed = daily_mini_game['isClaimed']
+                        seconds_to_next_attempt = daily_mini_game['remainSecondsToNextAttempt']
+                        start_date = daily_mini_game['startDate']
+                        user_id = profile_data['id']
+
+                        if not is_claimed and seconds_to_next_attempt <= 0:
+                            await start_daily_mini_game(http_client=http_client)
+
+                            encoded_body = await get_mini_game_cipher(http_client=http_client, user_id=user_id,
+                                                                      start_date=start_date)
+
+                            game_sleep_delay = randint(10, 26)
+                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw>")
+
+                            await asyncio.sleep(delay=game_sleep_delay)
+
+                            claim_data = await claim_daily_mini_game(http_client=http_client, cipher=encoded_body)
+
+                            await asyncio.sleep(delay=2)
+
+                            daily_mini_game = claim_data.get('dailyKeysMiniGame')
+                            if daily_mini_game:
+                                is_claimed = daily_mini_game['isClaimed']
+
+                                if is_claimed:
+                                    new_total_keys = int(claim_data.get('clickerUser', {}).get('totalKeys', total_keys))
+                                    calc_keys = new_total_keys - total_keys
+                                    total_keys = new_total_keys
+
+                                    logger.success(f"{self.session_name} | Successfully claimed mini game | "
+                                                   f"Total keys: <le>{total_keys}</le> (<lg>+{calc_keys}</lg>)")
 
                     await asyncio.sleep(delay=2)
 
                     exchange_id = profile_data.get('exchangeId')
                     if not exchange_id:
-                        status = await select_exchange(
-                            http_client=http_client, exchange_id='bybit'
-                        )
+                        status = await select_exchange(http_client=http_client, exchange_id='bybit')
                         if status is True:
-                            logger.success(
-                                f'{self.session_name} | Successfully selected exchange <ly>Bybit</ly>'
-                            )
+                            logger.success(f"{self.session_name} | Successfully selected exchange <ly>Bybit</ly>")
 
-                taps = randint(
-                    a=settings.RANDOM_TAPS_COUNT[0],
-                    b=settings.RANDOM_TAPS_COUNT[1],
-                )
+                if settings.USE_TAPS:
+                    taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
-                if active_turbo:
-                    taps += settings.ADD_TAPS_ON_TURBO
-                    if time() - turbo_time > 20:
-                        active_turbo = False
-                        turbo_time = 0
+                    player_data = await send_taps(
+                        http_client=http_client,
+                        available_energy=available_energy,
+                        taps=taps,
+                    )
 
-                player_data = await send_taps(
-                    http_client=http_client,
-                    available_energy=available_energy,
-                    taps=taps,
-                )
+                    if not player_data:
+                        continue
 
-                if not player_data:
-                    continue
+                    available_energy = player_data.get('availableTaps', 0)
+                    new_balance = int(player_data.get('balanceCoins', 0))
+                    calc_taps = new_balance - balance
+                    balance = new_balance
+                    total = int(player_data.get('totalCoins', 0))
+                    earn_on_hour = player_data['earnPassivePerHour']
 
-                available_energy = player_data.get('availableTaps', 0)
-                new_balance = int(player_data.get('balanceCoins', 0))
-                calc_taps = new_balance - balance
-                balance = new_balance
-                total = int(player_data.get('totalCoins', 0))
-                earn_on_hour = player_data['earnPassivePerHour']
+                    logger.success(f"{self.session_name} | Successful tapped! | "
+                                   f"Balance: <c>{balance:,}</c> (<lg>+{calc_taps:,}</lg>) | Total: <le>{total:,}</le>")
 
-                logger.success(
-                    f'{self.session_name} | Successful tapped! | '
-                    f'Balance: <c>{balance:,}</c> (<lg>+{calc_taps:,}</lg>) | Total: <le>{total:,}</le>'
-                )
+                if settings.AUTO_UPGRADE is True:
+                    for _ in range(settings.UPGRADES_COUNT):
+                        available_upgrades = [
+                            data for data in upgrades
+                            if data['isAvailable'] is True
+                            and data['isExpired'] is False
+                            and data.get('cooldownSeconds', 0) == 0
+                            and data.get('maxLevel', data['level']) >= data['level']
+                        ]
 
-                if active_turbo is False:
-                    if settings.AUTO_UPGRADE is True:
-                        for _ in range(settings.UPGRADES_COUNT):
-                            available_upgrades = [
-                                data
-                                for data in upgrades
-                                if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                            ]
+                        queue = []
 
-                            queue = []
-
-                            for upgrade in available_upgrades:
-                                upgrade_id = upgrade['id']
-                                level = upgrade['level']
-                                price = upgrade['price']
-                                profit = upgrade['profitPerHourDelta']
-
-                                significance = profit / max(price, 1)
-
-                                free_money = balance - settings.BALANCE_TO_SAVE
-                                max_price_limit = earn_on_hour * 5
-
-                                if (
-                                        (free_money * 0.7) >= price
-                                        and level <= settings.MAX_LEVEL
-                                        and profit > 0
-                                        and price < max_price_limit
-                                ):
-                                    heapq.heappush(
-                                        queue,
-                                        (-significance, upgrade_id, upgrade),
-                                    )
-
-                            if not queue:
-                                continue
-
-                            top_card = heapq.nsmallest(1, queue)[0]
-
-                            upgrade = top_card[2]
-
+                        for upgrade in available_upgrades:
                             upgrade_id = upgrade['id']
                             level = upgrade['level']
                             price = upgrade['price']
                             profit = upgrade['profitPerHourDelta']
 
-                            logger.info(
-                                f'{self.session_name} | Sleep 5s before upgrade <le>{upgrade_id}</le>'
-                            )
-                            await asyncio.sleep(delay=5)
+                            significance = profit / max(price, 1)
 
-                            status, upgrades = await buy_upgrade(
-                                http_client=http_client, upgrade_id=upgrade_id
-                            )
+                            free_money = balance - settings.BALANCE_TO_SAVE
+                            max_price_limit = earn_on_hour * 5
 
-                            if status is True:
-                                earn_on_hour += profit
-                                balance -= price
-                                logger.success(
-                                    f'{self.session_name} | '
-                                    f'Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | '
-                                    f'Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | '
-                                    f'Money left: <le>{balance:,}</le>'
-                                )
+                            if ((free_money * 0.7) >= price
+                                    and profit > 0
+                                    and level <= settings.MAX_LEVEL
+                                    and price <= settings.MAX_PRICE
+                                    and price < max_price_limit):
+                                heapq.heappush(queue, (-significance, upgrade_id, upgrade))
 
-                                await asyncio.sleep(delay=1)
+                        if not queue:
+                            continue
 
-                                continue
+                        top_card = heapq.nsmallest(1, queue)[0]
 
-                    if available_energy < settings.MIN_AVAILABLE_ENERGY:
+                        upgrade = top_card[2]
+
+                        upgrade_id = upgrade['id']
+                        level = upgrade['level']
+                        price = upgrade['price']
+                        profit = upgrade['profitPerHourDelta']
+
+                        logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_id}</le>")
+                        await asyncio.sleep(delay=5)
+
+                        status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+
+                        if status is True:
+                            earn_on_hour += profit
+                            balance -= price
+                            logger.success(f"{self.session_name} | "
+                                           f"Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
+                                           f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | "
+                                           f"Money left: <le>{balance:,}</le>")
+
+                            await asyncio.sleep(delay=1)
+
+                            continue
+
+                if available_energy < settings.MIN_AVAILABLE_ENERGY or not settings.USE_TAPS:
+                    if settings.USE_TAPS:
                         boosts = await get_boosts(http_client=http_client)
-                        energy_boost = next(
-                            (
-                                boost
-                                for boost in boosts
-                                if boost['id'] == 'BoostFullAvailableTaps'
-                            ),
-                            {},
-                        )
+                        energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
-                        if (
-                                settings.APPLY_DAILY_ENERGY is True
+                        if (settings.APPLY_DAILY_ENERGY is True
                                 and energy_boost.get('cooldownSeconds', 0) == 0
-                                and energy_boost.get('level', 0)
-                                <= energy_boost.get('maxLevel', 0)
-                        ):
-                            logger.info(
-                                f'{self.session_name} | Sleep 5s before apply energy boost'
-                            )
+                                and energy_boost.get('level', 0) <= energy_boost.get('maxLevel', 0)):
+                            logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before apply energy boost")
                             await asyncio.sleep(delay=5)
 
-                            status = await apply_boost(
-                                http_client=http_client,
-                                boost_id='BoostFullAvailableTaps',
-                            )
+                            status = await apply_boost(http_client=http_client, boost_id='BoostFullAvailableTaps')
                             if status is True:
-                                logger.success(
-                                    f'{self.session_name} | Successfully apply energy boost'
-                                )
+                                logger.success(f"{self.session_name} | Successfully apply energy boost")
 
                                 await asyncio.sleep(delay=1)
 
                                 continue
 
-                        await http_client.close()
-                        if proxy_conn:
-                            if not proxy_conn.closed:
-                                proxy_conn.close()
+                    await http_client.close()
+                    if proxy_conn:
+                        if not proxy_conn.closed:
+                            proxy_conn.close()
 
-                        random_sleep = randint(
-                            settings.SLEEP_BY_MIN_ENERGY[0],
-                            settings.SLEEP_BY_MIN_ENERGY[1],
-                        )
+                    random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
 
-                        logger.info(
-                            f'{self.session_name} | Minimum energy reached: <ly>{available_energy:.0f}</ly>'
-                        )
-                        logger.info(
-                            f'{self.session_name} | Sleep {random_sleep:,}s'
-                        )
+                    if settings.USE_TAPS:
+                        logger.info(f"{self.session_name} | Minimum energy reached: <ly>{available_energy:.0f}</ly>")
+                    logger.info(f"{self.session_name} | Sleep <lw>{random_sleep:,}s</lw>")
 
-                        await asyncio.sleep(delay=random_sleep)
+                    await asyncio.sleep(delay=random_sleep)
 
-                        access_token_created_time = 0
+                    access_token_created_time = 0
 
             except InvalidSession as error:
                 raise error
 
             except Exception as error:
-                logger.error(f'{self.session_name} | Unknown error: {error}')
+                logger.error(f"{self.session_name} | Unknown error: {error}")
                 await asyncio.sleep(delay=3)
 
-            else:
-                sleep_between_clicks = randint(
-                    a=settings.SLEEP_BETWEEN_TAP[0],
-                    b=settings.SLEEP_BETWEEN_TAP[1],
-                )
+            if settings.USE_TAPS:
+                sleep_between_clicks = randint(a=settings.SLEEP_BETWEEN_TAP[0], b=settings.SLEEP_BETWEEN_TAP[1])
 
-                if active_turbo is True:
-                    sleep_between_clicks = 4
-
-                logger.info(f'Sleep {sleep_between_clicks}s')
+                logger.info(f"Sleep <lw>{sleep_between_clicks}s</lw>")
                 await asyncio.sleep(delay=sleep_between_clicks)
 
 
@@ -452,4 +389,4 @@ async def run_tapper(tg_client: Client, proxy: str | None):
     try:
         await Tapper(tg_client=tg_client).run(proxy=proxy)
     except InvalidSession:
-        logger.error(f'{tg_client.name} | Invalid Session')
+        logger.error(f"{tg_client.name} | Invalid Session")
