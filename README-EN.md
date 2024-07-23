@@ -68,16 +68,18 @@ You can download [**Repository**](https://github.com/shamhi/HamsterKombatBot) by
 ~/HamsterKombatBot >>> python3 -m venv venv
 ~/HamsterKombatBot >>> source venv/bin/activate
 ~/HamsterKombatBot >>> pip3 install -r requirements.txt
+~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> cp .env-example .env
-~/HamsterKombatBot >>> nano .env # Here you must specify your API_ID and API_HASH , the rest is taken by default
+~/HamsterKombatBot >>> nano .env # Specify your API_ID and API_HASH
 ~/HamsterKombatBot >>> python3 main.py
 
 #Windows
 ~/HamsterKombatBot >>> python -m venv venv
 ~/HamsterKombatBot >>> venv\Scripts\activate
 ~/HamsterKombatBot >>> pip install -r requirements.txt
+~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> copy .env-example .env
-~/HamsterKombatBot >>> # Specify your API_ID and API_HASH, the rest is taken by default
+~/HamsterKombatBot >>> # Open .env file and specify your API_ID and API_HASH
 ~/HamsterKombatBot >>> python main.py
 ```
 > Installing as a Linux service for running the bot in the background [here](docs/LINUX-SERVIS-INSTALL_EN.md).

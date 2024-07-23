@@ -68,16 +68,18 @@
 ~/HamsterKombatBot >>> python3 -m venv venv
 ~/HamsterKombatBot >>> source venv/bin/activate
 ~/HamsterKombatBot >>> pip3 install -r requirements.txt
+~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> cp .env-example .env
-~/HamsterKombatBot >>> nano .env  # Здесь вы обязательно должны указать ваши API_ID и API_HASH , остальное берется по умолчанию
+~/HamsterKombatBot >>> nano .env  # Укажите ваши API_ID и API_HASH
 ~/HamsterKombatBot >>> python3 main.py
 
 # Windows
 ~/HamsterKombatBot >>> python -m venv venv
 ~/HamsterKombatBot >>> venv\Scripts\activate
 ~/HamsterKombatBot >>> pip install -r requirements.txt
+~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> copy .env-example .env
-~/HamsterKombatBot >>> # Указываете ваши API_ID и API_HASH, остальное берется по умолчанию
+~/HamsterKombatBot >>> # Откройте файл .env и укажите ваши API_ID и API_HASH
 ~/HamsterKombatBot >>> python main.py
 ```
 > Установка в качестве Linux службы для фоновой работы бота [тут](docs/LINUX-SERVIS-INSTALL.md).
