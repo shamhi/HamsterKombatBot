@@ -227,7 +227,7 @@ class Tapper:
                             encoded_body = await get_mini_game_cipher(http_client=http_client, user_id=user_id,
                                                                       start_date=start_date)
 
-                            game_sleep_delay = randint(10, 26)
+                            game_sleep_delay = randint(10, 18)
                             logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw>")
 
                             await asyncio.sleep(delay=game_sleep_delay)
