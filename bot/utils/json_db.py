@@ -9,9 +9,9 @@ class JsonDB:
         try:
             with open(self.name, "r") as f:
                 return json.load(f)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"File {self.name} not found")
+        except:
+            return {}
 
     def save_data(self, data: dict):
         with open(self.name, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=2, ensure_ascii=False)
