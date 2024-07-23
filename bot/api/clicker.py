@@ -16,6 +16,7 @@ async def get_config(
         {},
         'getting Config',
     )
+
     return response_json
 
 
@@ -29,21 +30,22 @@ async def get_profile_data(http_client: aiohttp.ClientSession) -> dict[str]:
             'getting Profile Data',
             ignore_status=422,
         )
-        profile_data = response_json.get('clickerUser') or response_json.get(
-            'found', {}
-        ).get('clickerUser', {})
-        if profile_data:
-            return profile_data
+
+        profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+
+        return profile_data
 
 
 async def get_upgrades(http_client: aiohttp.ClientSession) -> dict:
-    return await make_request(
+    response_json = await make_request(
         http_client,
         'POST',
         'https://api.hamsterkombatgame.io/clicker/upgrades-for-buy',
         {},
         'getting Upgrades',
     )
+
+    return response_json
 
 
 async def buy_upgrade(
@@ -57,9 +59,9 @@ async def buy_upgrade(
         'buying Upgrade',
         ignore_status=422,
     )
-    upgrades = response_json.get('upgradesForBuy') or response_json.get(
-        'found', {}
-    ).get('upgradesForBuy', {})
+
+    upgrades = response_json.get('upgradesForBuy') or response_json.get('found', {}).get('upgradesForBuy', {})
+
     return True, upgrades
 
 
@@ -71,7 +73,9 @@ async def get_boosts(http_client: aiohttp.ClientSession) -> list[dict]:
         {},
         'getting Boosts',
     )
+
     boosts = response_json.get('boostsForBuy', [])
+
     return boosts
 
 
@@ -85,6 +89,7 @@ async def claim_daily_cipher(
         {'cipher': cipher},
         'Claim Daily Cipher',
     )
+
     return bool(response_json)
 
 
@@ -103,9 +108,9 @@ async def send_taps(
         'Tapping',
         ignore_status=422,
     )
-    player_data = response_json.get('clickerUser') or response_json.get(
-        'found', {}
-    ).get('clickerUser', {})
+
+    player_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+
     return player_data
 
 
@@ -119,4 +124,5 @@ async def apply_boost(
         {'timestamp': time(), 'boostId': boost_id},
         'Apply Boost',
     )
+
     return bool(response_json)

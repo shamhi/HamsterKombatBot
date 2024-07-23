@@ -224,24 +224,26 @@ class Tapper:
                         if not is_claimed and seconds_to_next_attempt <= 0:
                             await start_daily_mini_game(http_client=http_client)
 
-                            encoded_body = await get_mini_game_cipher(http_client=http_client, user_id=user_id,
-                                                                      start_date=start_date)
+                            encoded_body = await get_mini_game_cipher(
+                                http_client=http_client,
+                                user_id=user_id,
+                                start_date=start_date
+                            )
 
                             game_sleep_delay = randint(10, 18)
-                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw>")
+                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in mini game")
 
                             await asyncio.sleep(delay=game_sleep_delay)
 
-                            claim_data = await claim_daily_mini_game(http_client=http_client, cipher=encoded_body)
+                            profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client, cipher=encoded_body)
 
                             await asyncio.sleep(delay=2)
 
-                            daily_mini_game = claim_data.get('dailyKeysMiniGame')
                             if daily_mini_game:
                                 is_claimed = daily_mini_game['isClaimed']
 
                                 if is_claimed:
-                                    new_total_keys = int(claim_data.get('clickerUser', {}).get('totalKeys', total_keys))
+                                    new_total_keys = profile_data.get('totalKeys', total_keys)
                                     calc_keys = new_total_keys - total_keys
                                     total_keys = new_total_keys
 
