@@ -19,7 +19,7 @@
 | **MAX_COMBO_PRICE**         | Maximum purchase price for buying combo cards with an available balance _(eg 10000000)_  |
 | **APPLY_DAILY_ENERGY**      | Whether to use the daily free energy boost _(True / False)_                              |
 | **USE_TAPS**                | Whether to use taps _(True / False)_                                                     |
-| **RANDOM_CLICKS_COUNT**     | Random number of taps _(eg [50,200])_                                                    |
+| **RANDOM_TAPS_COUNT**       | Random number of taps _(eg [50,200])_                                                    |
 | **SLEEP_BETWEEN_TAP**       | Random delay between taps in seconds _(eg [10,25])_                                      |
 | **USE_RANDOM_DELAY_IN_RUN** | Использовать ли рандомную задержку при запуске _(True / False)_                          |
 | **RANDOM_DELAY_IN_RUN**     | Random delay in run _(eg [0,15])_                                                        |
