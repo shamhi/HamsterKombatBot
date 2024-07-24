@@ -13,7 +13,6 @@ services:
       - '2'
     volumes:
       - ./sessions:/app/sessions
-      - ./proxies.txt:/app/proxies.txt
       - ./profiles.json:/app/profiles.json
     env_file:
       - .env
