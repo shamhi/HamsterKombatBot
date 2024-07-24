@@ -82,7 +82,7 @@ def get_mobile_user_agent():
     return user_agent
 
 
-async def get_mini_game_cipher(http_client: aiohttp.ClientSession, user_id: int, start_date):
+async def get_mini_game_cipher(http_client: aiohttp.ClientSession, user_id: int, session_name: str, start_date: str):
     response = await http_client.get(url="https://hamsterkombatgame.io/games/UnblockPuzzle/?v")
     original_html = await response.text()
 
@@ -141,16 +141,18 @@ async def get_mini_game_cipher(http_client: aiohttp.ClientSession, user_id: int,
             game_key = await page.evaluate('document.querySelector("#gameKeyElement")?.getAttribute("data-game-key")')
 
             if game_key:
+                logger.info(f"{session_name} | Key for Mini Game: <lc>{game_key}</lc>")
+
                 cipher = game_key.strip()
-                body = f'{cipher}|{user_id}'
+                body = f"{cipher}|{user_id}"
                 encoded_body = base64.b64encode(body.encode()).decode()
 
                 return encoded_body
             else:
-                logger.error('Key for mini game is not found')
+                logger.error(f"Key for Mini Game is not found: <lr>{game_key}</lr>")
         except Exception as error:
-            logger.error(f'Error while getting key for mini game: {error}')
+            logger.error(f"Error while getting key for Mini Game: {error}")
 
         await browser.close()
 
-        return None
+        return ''

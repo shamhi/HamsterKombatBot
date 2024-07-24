@@ -221,21 +221,23 @@ class Tapper:
                         start_date = daily_mini_game['startDate']
                         user_id = profile_data['id']
 
-                        if not is_claimed and seconds_to_next_attempt <= 0:
+                        encoded_body = await get_mini_game_cipher(
+                            http_client=http_client,
+                            user_id=user_id,
+                            session_name=self.session_name,
+                            start_date=start_date
+                        )
+
+                        if not is_claimed and seconds_to_next_attempt <= 0 and encoded_body:
                             await start_daily_mini_game(http_client=http_client)
 
-                            encoded_body = await get_mini_game_cipher(
-                                http_client=http_client,
-                                user_id=user_id,
-                                start_date=start_date
-                            )
+                            game_sleep_delay = randint(10, 26)
 
-                            game_sleep_delay = randint(10, 18)
                             logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in Mini Game")
-
                             await asyncio.sleep(delay=game_sleep_delay)
 
-                            profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client, cipher=encoded_body)
+                            profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client,
+                                                                                        cipher=encoded_body)
 
                             await asyncio.sleep(delay=2)
 
@@ -255,6 +257,8 @@ class Tapper:
                             elif seconds_to_next_attempt > 0:
                                 logger.info(f"{self.session_name} | "
                                             f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game")
+                            elif not encoded_body:
+                                logger.info(f"{self.session_name} | Key for Mini Game is not found")
 
                     await asyncio.sleep(delay=2)
 
