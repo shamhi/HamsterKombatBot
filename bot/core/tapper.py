@@ -231,7 +231,7 @@ class Tapper:
                             )
 
                             game_sleep_delay = randint(10, 18)
-                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in mini game")
+                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in Mini Game")
 
                             await asyncio.sleep(delay=game_sleep_delay)
 
@@ -247,8 +247,14 @@ class Tapper:
                                     calc_keys = new_total_keys - total_keys
                                     total_keys = new_total_keys
 
-                                    logger.success(f"{self.session_name} | Successfully claimed mini game | "
+                                    logger.success(f"{self.session_name} | Successfully claimed Mini Game | "
                                                    f"Total keys: <le>{total_keys}</le> (<lg>+{calc_keys}</lg>)")
+                        else:
+                            if is_claimed:
+                                logger.info(f"{self.session_name} | Daily Mini Game already claimed")
+                            elif seconds_to_next_attempt > 0:
+                                logger.info(f"{self.session_name} | "
+                                            f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game")
 
                     await asyncio.sleep(delay=2)
 
