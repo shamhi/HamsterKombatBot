@@ -221,7 +221,7 @@ class Tapper:
                         start_date = daily_mini_game['startDate']
                         user_id = profile_data['id']
 
-                        if not is_claimed and seconds_to_next_attempt <= 0 and encoded_body:
+                        if not is_claimed and seconds_to_next_attempt <= 0:
                             encoded_body = await get_mini_game_cipher(
                                 http_client=http_client,
                                 user_id=user_id,
