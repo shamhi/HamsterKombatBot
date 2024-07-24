@@ -221,36 +221,37 @@ class Tapper:
                         start_date = daily_mini_game['startDate']
                         user_id = profile_data['id']
 
-                        encoded_body = await get_mini_game_cipher(
-                            http_client=http_client,
-                            user_id=user_id,
-                            session_name=self.session_name,
-                            start_date=start_date
-                        )
-
                         if not is_claimed and seconds_to_next_attempt <= 0 and encoded_body:
-                            await start_daily_mini_game(http_client=http_client)
+                            encoded_body = await get_mini_game_cipher(
+                                http_client=http_client,
+                                user_id=user_id,
+                                session_name=self.session_name,
+                                start_date=start_date
+                            )
 
-                            game_sleep_delay = randint(10, 26)
+                            if encoded_body:
+                                await start_daily_mini_game(http_client=http_client)
 
-                            logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in Mini Game")
-                            await asyncio.sleep(delay=game_sleep_delay)
+                                game_sleep_delay = randint(10, 26)
 
-                            profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client,
-                                                                                        cipher=encoded_body)
+                                logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in Mini Game")
+                                await asyncio.sleep(delay=game_sleep_delay)
 
-                            await asyncio.sleep(delay=2)
+                                profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client,
+                                                                                            cipher=encoded_body)
 
-                            if daily_mini_game:
-                                is_claimed = daily_mini_game['isClaimed']
+                                await asyncio.sleep(delay=2)
 
-                                if is_claimed:
-                                    new_total_keys = profile_data.get('totalKeys', total_keys)
-                                    calc_keys = new_total_keys - total_keys
-                                    total_keys = new_total_keys
+                                if daily_mini_game:
+                                    is_claimed = daily_mini_game['isClaimed']
 
-                                    logger.success(f"{self.session_name} | Successfully claimed Mini Game | "
-                                                   f"Total keys: <le>{total_keys}</le> (<lg>+{calc_keys}</lg>)")
+                                    if is_claimed:
+                                        new_total_keys = profile_data.get('totalKeys', total_keys)
+                                        calc_keys = new_total_keys - total_keys
+                                        total_keys = new_total_keys
+
+                                        logger.success(f"{self.session_name} | Successfully claimed Mini Game | "
+                                                       f"Total keys: <le>{total_keys}</le> (<lg>+{calc_keys}</lg>)")
                         else:
                             if is_claimed:
                                 logger.info(f"{self.session_name} | Daily Mini Game already claimed")
