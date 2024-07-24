@@ -18,7 +18,6 @@
 | **UPGRADES_COUNT**          | The count of cards that the bot will upgrade in 1 lap _(eg 10)_                          |
 | **MAX_COMBO_PRICE**         | Maximum purchase price for buying combo cards with an available balance _(eg 10000000)_  |
 | **APPLY_DAILY_ENERGY**      | Whether to use the daily free energy boost _(True / False)_                              |
-| **APPLY_DAILY_TURBO**       | Whether to use the daily free turbo boost _(True / False)_                               |
 | **USE_TAPS**                | Whether to use taps _(True / False)_                                                     |
 | **RANDOM_CLICKS_COUNT**     | Random number of taps _(eg [50,200])_                                                    |
 | **SLEEP_BETWEEN_TAP**       | Random delay between taps in seconds _(eg [10,25])_                                      |
