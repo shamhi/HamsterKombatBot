@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip3 install --upgrade pip setuptools wheel && \
     pip3 install --no-cache-dir -r requirements.txt
 
-RUN playwright install
+RUN playwright install --with-deps
 
 FROM python:3.11.9-slim
 
