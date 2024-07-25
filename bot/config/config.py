@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     USE_RANDOM_DELAY_IN_RUN: bool = False
     RANDOM_DELAY_IN_RUN: list[int] = [0, 15]
 
+    USE_RANDOM_MINI_GAME_KEY: bool = False
+
     USE_RANDOM_USERAGENT: bool = False
 
 
