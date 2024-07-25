@@ -222,20 +222,21 @@ class Tapper:
                         user_id = profile_data['id']
 
                         if not is_claimed and seconds_to_next_attempt <= 0:
+                            game_sleep_time = randint(12, 26)
+
                             encoded_body = await get_mini_game_cipher(
                                 http_client=http_client,
                                 user_id=user_id,
                                 session_name=self.session_name,
-                                start_date=start_date
+                                start_date=start_date,
+                                game_sleep_time=game_sleep_time
                             )
 
                             if encoded_body:
                                 await start_daily_mini_game(http_client=http_client)
 
-                                game_sleep_delay = randint(10, 26)
-
-                                logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_delay}s</lw> in Mini Game")
-                                await asyncio.sleep(delay=game_sleep_delay)
+                                logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_time}s</lw> in Mini Game")
+                                await asyncio.sleep(delay=game_sleep_time)
 
                                 profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client,
                                                                                             cipher=encoded_body)

@@ -82,7 +82,19 @@ def get_mobile_user_agent():
     return user_agent
 
 
-async def get_mini_game_cipher(http_client: aiohttp.ClientSession, user_id: int, session_name: str, start_date: str):
+async def get_mini_game_cipher(http_client: aiohttp.ClientSession,
+                               user_id: int,
+                               session_name: str,
+                               start_date: str,
+                               game_sleep_time: int):
+    if settings.USE_RANDOM_MINI_GAME_KEY:
+        cipher = f"0{game_sleep_time}{random.randint(10000000000, 99999999999)}"[:10]
+        body = f"{cipher}|{user_id}"
+
+        encoded_body = base64.b64encode(body.encode()).decode()
+
+        return encoded_body
+
     response = await http_client.get(url="https://hamsterkombatgame.io/games/UnblockPuzzle/?v")
     original_html = await response.text()
 
@@ -117,6 +129,8 @@ async def get_mini_game_cipher(http_client: aiohttp.ClientSession, user_id: int,
             {'type': 'mousedown', 'x': 92, 'y': 242, 'timestamp': 1721665313802},
             {'type': 'mouseup', 'x': 92, 'y': 242, 'timestamp': 1721665313878}
         ]
+
+        await asyncio.sleep(delay=10)
 
         start_time = actions[0]['timestamp']
         await page.mouse.move(0, 0)
