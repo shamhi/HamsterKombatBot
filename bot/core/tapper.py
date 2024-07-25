@@ -7,6 +7,7 @@ from urllib.parse import unquote
 
 import aiohttp
 from aiohttp_proxy import ProxyConnector
+from aiohttp_socks import SocksConnector
 from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.types import User
@@ -287,7 +288,8 @@ class Tapper:
         active_turbo = False
         errors_count = 0
 
-        proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+        # proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+        proxy_conn = SocksConnector().from_url(proxy) if proxy else None
 
         tap_time = await get_tap_time(db_pool=self.db_pool, phone_number=self.user_data.phone_number)
 
