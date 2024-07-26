@@ -9,3 +9,4 @@ services:
     command: "python3 main.py -a 2"
     volumes:
       - .:/app
+    network_mode: host
