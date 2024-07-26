@@ -23,7 +23,7 @@
 | **SLEEP_BETWEEN_TAP**        | Random delay between taps in seconds _(eg [10,25])_                                      |
 | **USE_RANDOM_DELAY_IN_RUN**  | Использовать ли рандомную задержку при запуске _(True / False)_                          |
 | **RANDOM_DELAY_IN_RUN**      | Random delay in run _(eg [0,15])_                                                        |
-| **USE_RANDOM_MINI_GAME_KEY** | Whether to use random key for mini game cipher _(напр. [0,15])_                          |
+| **USE_RANDOM_MINI_GAME_KEY** | Whether to use random key for mini game cipher _(True / False)_                          |
 | **USE_RANDOM_USERAGENT**     | Whether to random User Agent every time to start _(True / False)_                        |
 
 ## 📕 Профили
