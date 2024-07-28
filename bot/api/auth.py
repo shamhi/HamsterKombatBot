@@ -21,16 +21,3 @@ async def login(
     except Exception as error:
         await handle_error(error, '', 'getting Access Token')
         return None
-
-
-async def get_account_info(
-        http_client: aiohttp.ClientSession
-) -> dict:
-    response_json = await make_request(
-        http_client,
-        'POST',
-        'https://api.hamsterkombatgame.io/auth/account-info',
-        {},
-        'getting Account Info',
-    )
-    return response_json
