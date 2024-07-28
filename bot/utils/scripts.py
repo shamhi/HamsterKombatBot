@@ -194,13 +194,14 @@ async def get_promo_code(app_token: str,
                          promo_id: str,
                          max_attempts: int,
                          event_timeout: int,
-                         session_name: str):
+                         session_name: str,
+                         proxy_conn: aiohttp.TCPConnector):
     headers = {
         "Content-Type": "application/json; charset=utf-8",
         "Host": "api.gamepromo.io"
     }
 
-    async with aiohttp.ClientSession(headers=headers) as http_client:
+    async with aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client:
         client_id = generate_client_id()
 
         json_data = {
