@@ -8,28 +8,24 @@ import aiohttp
 from aiohttp_proxy import ProxyConnector
 from pyrogram import Client
 
-from bot.api.combo import claim_daily_combo, get_combo_cards
 from bot.config import settings
 from bot.utils.logger import logger
-from bot.exceptions import InvalidSession
-from bot.api.auth import login, get_account_info
-from bot.api.clicker import (
-    apply_boost,
-    get_profile_data,
-    get_upgrades,
-    buy_upgrade,
-    get_boosts,
-    claim_daily_cipher,
-    send_taps,
-    get_config,
-)
-from bot.api.mini_game import start_daily_mini_game, claim_daily_mini_game
-from bot.api.ip import get_ip_info
-from bot.api.exchange import select_exchange
-from bot.api.tasks import get_nuxt_builds, get_tasks, get_airdrop_tasks, get_daily
-from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher
-from bot.utils.tg_web_data import get_tg_web_data
 from bot.utils.proxy import check_proxy
+from bot.utils.tg_web_data import get_tg_web_data
+from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher, get_promo_code
+from bot.exceptions import InvalidSession
+
+from bot.api.auth import login
+from bot.api.clicker import get_config, get_profile_data, get_ip_info, get_account_info, send_taps
+from bot.api.boosts import get_boosts, apply_boost
+from bot.api.upgrades import get_upgrades, buy_upgrade
+from bot.api.combo import claim_daily_combo, get_combo_cards
+from bot.api.cipher import claim_daily_cipher
+from bot.api.promo import get_promos, apply_promo
+from bot.api.minigame import start_daily_mini_game, claim_daily_mini_game
+from bot.api.tasks import get_tasks, get_airdrop_tasks, claim_daily_reward
+from bot.api.exchange import select_exchange
+from bot.api.nuxt import get_nuxt_builds
 
 
 class Tapper:
@@ -190,7 +186,7 @@ class Tapper:
                     await asyncio.sleep(delay=2)
 
                     if is_completed is False:
-                        status = await get_daily(http_client=http_client)
+                        status = await claim_daily_reward(http_client=http_client)
                         if status is True:
                             logger.success(f"{self.session_name} | Successfully get daily reward | "
                                            f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>")
@@ -213,6 +209,8 @@ class Tapper:
                                                f"Bonus: <lg>+{bonus:,}</lg>")
 
                         await asyncio.sleep(delay=2)
+
+                    await asyncio.sleep(delay=2)
 
                     daily_mini_game = game_config.get('dailyKeysMiniGame')
                     if daily_mini_game:
@@ -261,6 +259,72 @@ class Tapper:
                                             f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game")
                             elif not encoded_body:
                                 logger.info(f"{self.session_name} | Key for Mini Game is not found")
+
+                    await asyncio.sleep(delay=2)
+
+                    promo_activates = {promo['promoId']: promo['receiveKeysToday']
+                                       for promo in profile_data.get('promos', [])}
+                    promos = game_config.get('clickerConfig', {}).get('promos')
+
+                    if promos:
+                        promo_apps = promos['apps']
+                        max_attempts = promos['loginSameIpLimitCount']
+                        event_timeout = promos['registerEventTimeoutSec']
+
+                        for app in promo_apps:
+                            await get_promos(http_client=http_client)
+
+                            is_blocked = app['blocked']
+
+                            if is_blocked:
+                                continue
+
+                            app_token = app['token']
+                            promos = app['promos']
+
+                            for promo in promos:
+                                is_blocked = promo['blocked']
+
+                                if is_blocked:
+                                    continue
+
+                                promo_id = promo['promoId']
+                                prefix = promo['prefix']
+
+                                keys_per_day = promo['keysPerDay']
+                                keys_per_code = promo['keysPerCode']
+
+                                today_promo_activates_count = promo_activates.get(promo_id, 0)
+
+                                while today_promo_activates_count < keys_per_day:
+                                    promo_code = await get_promo_code(app_token=app_token,
+                                                                      promo_id=promo_id,
+                                                                      max_attempts=max_attempts,
+                                                                      event_timeout=event_timeout,
+                                                                      session_name=self.session_name)
+
+                                    if not promo_code:
+                                        continue
+
+                                    profile_data = await apply_promo(http_client=http_client, promo_code=promo_code)
+
+                                    if profile_data:
+                                        promo_activates = {promo['promoId']: promo['receiveKeysToday']
+                                                           for promo in profile_data.get('promos', [])}
+
+                                        total_keys = profile_data.get('totalKeys', total_keys)
+                                        today_promo_activates_count = promo_activates.get(promo_id, 0)
+
+                                        logger.success(f"{self.session_name} | "
+                                                       f"Successfully activated promo code <lc>{promo_code}</lc> in <lm>{prefix}</lm> game | "
+                                                       f"Get <ly>{today_promo_activates_count}</ly><lw>/</lw><ly>{keys_per_day}</ly> keys | "
+                                                       f"Total keys: <le>{total_keys}</le> (<lg>+{keys_per_code}</lg>)")
+                                    else:
+                                        logger.info(f"{self.session_name} | "
+                                                    f"Promo code <lc>{promo_code}</lc> was wrong in <lm>{prefix}</lm> game | "
+                                                    f"Trying again...")
+
+                                    await asyncio.sleep(delay=2)
 
                     await asyncio.sleep(delay=2)
 
