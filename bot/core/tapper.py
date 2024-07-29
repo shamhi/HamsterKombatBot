@@ -5,7 +5,7 @@ from random import randint
 from datetime import datetime, timedelta
 
 import aiohttp
-from aiohttp_proxy import ProxyConnector
+import aiohttp_proxy
 from pyrogram import Client
 
 from bot.config import settings
@@ -43,7 +43,7 @@ class Tapper:
             await asyncio.sleep(delay=random_delay)
 
         headers = get_headers(name=self.tg_client.name)
-        proxy_conn = ProxyConnector().from_url(proxy) if proxy else None
+        proxy_conn = aiohttp_proxy.ProxyConnector().from_url(proxy) if proxy else None
 
         http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
@@ -59,7 +59,7 @@ class Tapper:
                         if not proxy_conn.closed:
                             proxy_conn.close()
 
-                    proxy_conn = (ProxyConnector().from_url(proxy) if proxy else None)
+                    proxy_conn = aiohttp_proxy.ProxyConnector().from_url(proxy) if proxy else None
                     http_client = aiohttp.ClientSession(headers=headers, connector=proxy_conn)
 
                 if time() - access_token_created_time >= 3600:
@@ -302,7 +302,7 @@ class Tapper:
                                                                       max_attempts=max_attempts,
                                                                       event_timeout=event_timeout,
                                                                       session_name=self.session_name,
-                                                                      proxy_conn=proxy_conn)
+                                                                      proxy=proxy)
 
                                     if not promo_code:
                                         continue
