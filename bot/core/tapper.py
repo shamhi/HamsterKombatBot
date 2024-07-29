@@ -302,7 +302,7 @@ class Tapper:
                                                                       max_attempts=max_attempts,
                                                                       event_timeout=event_timeout,
                                                                       session_name=self.session_name,
-                                                                      proxy_conn=http_client.connector)
+                                                                      proxy_conn=proxy_conn)
 
                                     if not promo_code:
                                         continue
