@@ -215,11 +215,13 @@ async def get_promo_code(app_token: str,
 
         response = await http_client.post(url="https://api.gamepromo.io/promo/login-client", json=json_data)
 
+        response_text = await response.text()
         response_json = await response.json()
         access_token = response_json.get("clientToken")
 
         if not access_token:
-            logger.debug(f"{session_name} | Promo code not found out of <lw>{max_attempts}</lw> attempts")
+            logger.debug(f"{session_name} | Can't login to api.gamepromo.io | Try with proxy | "
+                         f"Response text: {escape_html(response_text)[:256]}...")
             return
 
         http_client.headers["Authorization"] = f"Bearer {access_token}"
