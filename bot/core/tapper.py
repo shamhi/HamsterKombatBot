@@ -262,17 +262,17 @@ class Tapper:
 
                     await asyncio.sleep(delay=2)
 
-                    promo_activates = {promo['promoId']: promo['receiveKeysToday']
-                                       for promo in profile_data.get('promos', [])}
                     promos = game_config.get('clickerConfig', {}).get('promos')
-
                     if promos:
                         promo_apps = promos['apps']
-                        max_attempts = promos['loginSameIpLimitCount']
                         event_timeout = promos['registerEventTimeoutSec']
 
                         for app in promo_apps:
-                            await get_promos(http_client=http_client)
+                            promos_data = await get_promos(http_client=http_client)
+                            promo_states = promos_data.get('states', [])
+
+                            promo_activates = {promo['promoId']: promo['receiveKeysToday']
+                                               for promo in promo_states}
 
                             is_blocked = app['blocked']
 
@@ -291,6 +291,7 @@ class Tapper:
                                 promo_id = promo['promoId']
                                 prefix = promo['prefix']
 
+                                max_attempts = promo['eventsCount']
                                 keys_per_day = promo['keysPerDay']
                                 keys_per_code = promo['keysPerCode']
 
@@ -307,14 +308,13 @@ class Tapper:
                                     if not promo_code:
                                         continue
 
-                                    profile_data = await apply_promo(http_client=http_client, promo_code=promo_code)
+                                    profile_data, promo_state = await apply_promo(http_client=http_client,
+                                                                                  promo_code=promo_code)
 
-                                    if profile_data:
-                                        promo_activates = {promo['promoId']: promo['receiveKeysToday']
-                                                           for promo in profile_data.get('promos', [])}
-
+                                    if profile_data and promo_state:
                                         total_keys = profile_data.get('totalKeys', total_keys)
-                                        today_promo_activates_count = promo_activates.get(promo_id, 0)
+                                        today_promo_activates_count = promo_state.get('receiveKeysToday',
+                                                                                      today_promo_activates_count)
 
                                         logger.success(f"{self.session_name} | "
                                                        f"Successfully activated promo code <lc>{promo_code}</lc> in <lm>{prefix}</lm> game | "

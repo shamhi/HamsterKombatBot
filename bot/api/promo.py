@@ -7,7 +7,7 @@ from bot.api.http import make_request
 
 async def get_promos(
         http_client: aiohttp.ClientSession
-) -> tuple[dict[Any, Any], dict[Any, Any]]:
+) -> dict[str, Any]:
     response_json = await make_request(
         http_client,
         'POST',
@@ -16,14 +16,12 @@ async def get_promos(
         'getting Promos'
     )
 
-    promos = response_json.get('promos', [])
-
-    return promos
+    return response_json
 
 
 async def apply_promo(
         http_client: aiohttp.ClientSession, promo_code: str
-) -> dict[Any, Any]:
+) -> tuple[dict[Any, Any], dict[Any, Any]]:
     response_json = await make_request(
         http_client,
         'POST',
@@ -33,6 +31,7 @@ async def apply_promo(
         ignore_status=422
     )
 
-    profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('clickerUser', {}) or response_json.get('found', {}).get('clickerUser', {})
+    promo_state = response_json.get('promoState', {}) or response_json.get('found', {}).get('promoState', {})
 
-    return profile_data
+    return profile_data, promo_state
