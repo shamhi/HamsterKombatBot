@@ -28,7 +28,7 @@ async def apply_boost(
         http_client,
         'POST',
         'https://api.hamsterkombatgame.io/clicker/buy-boost',
-        {'timestamp': time(), 'boostId': boost_id},
+        {'timestamp': int(time()), 'boostId': boost_id},
         'Apply Boost',
     )
 

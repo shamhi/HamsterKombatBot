@@ -27,7 +27,7 @@ async def buy_upgrade(
         http_client,
         'POST',
         'https://api.hamsterkombatgame.io/clicker/buy-upgrade',
-        {'timestamp': time(), 'upgradeId': upgrade_id},
+        {'timestamp': int(time()), 'upgradeId': upgrade_id},
         'buying Upgrade',
         ignore_status=422,
     )
