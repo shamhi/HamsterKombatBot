@@ -16,7 +16,7 @@ from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher, 
 from bot.exceptions import InvalidSession
 
 from bot.api.auth import login
-from bot.api.clicker import get_config, get_profile_data, get_ip_info, get_account_info, send_taps
+from bot.api.clicker import get_config, get_profile_data, get_ip_info, get_account_info, get_skins, send_taps
 from bot.api.boosts import get_boosts, apply_boost
 from bot.api.upgrades import get_upgrades, buy_upgrade
 from bot.api.combo import claim_daily_combo, get_combo_cards
@@ -51,6 +51,9 @@ class Tapper:
             await check_proxy(http_client=http_client, proxy=proxy, session_name=self.session_name)
 
         tg_web_data = await get_tg_web_data(tg_client=self.tg_client, proxy=proxy, session_name=self.session_name)
+
+        if not tg_web_data:
+            return
 
         while True:
             try:
@@ -87,6 +90,7 @@ class Tapper:
                     tasks = await get_tasks(http_client=http_client)
                     airdrop_tasks = await get_airdrop_tasks(http_client=http_client)
                     ip_info = await get_ip_info(http_client=http_client)
+                    skins = await get_skins(http_client=http_client)
 
                     ip = ip_info.get('ip', 'NO')
                     country_code = ip_info.get('country_code', 'NO')
@@ -108,7 +112,7 @@ class Tapper:
 
                     upgrades = upgrades_data['upgradesForBuy']
                     daily_combo = upgrades_data.get('dailyCombo')
-                    if daily_combo:
+                    if daily_combo and settings.APPLY_COMBO:
                         bonus = daily_combo['bonusCoins']
                         is_claimed = daily_combo['isClaimed']
                         upgraded_list = daily_combo['upgradeIds']
@@ -178,23 +182,26 @@ class Tapper:
                                         logger.success(f"{self.session_name} | Successfully claimed daily combo | "
                                                        f"Bonus: <lg>+{bonus:,}</lg>")
 
-                    daily_task = tasks[-1]
-                    rewards = daily_task['rewardsByDays']
-                    is_completed = daily_task['isCompleted']
-                    days = daily_task['days']
-
                     await asyncio.sleep(delay=2)
 
-                    if is_completed is False:
-                        status = await claim_daily_reward(http_client=http_client)
-                        if status is True:
-                            logger.success(f"{self.session_name} | Successfully get daily reward | "
-                                           f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>")
+                    if settings.APPLY_DAILY_REWARD:
+                        daily_task = tasks[-1]
+                        rewards = daily_task['rewardsByDays']
+                        is_completed = daily_task['isCompleted']
+                        days = daily_task['days']
+
+                        await asyncio.sleep(delay=2)
+
+                        if is_completed is False:
+                            status = await claim_daily_reward(http_client=http_client)
+                            if status is True:
+                                logger.success(f"{self.session_name} | Successfully get daily reward | "
+                                               f"Days: <lm>{days}</lm> | Reward coins: <lg>+{rewards[days - 1]['rewardCoins']}</lg>")
 
                     await asyncio.sleep(delay=2)
 
                     daily_cipher = game_config.get('dailyCipher')
-                    if daily_cipher:
+                    if daily_cipher and settings.APPLY_DAILY_CIPHER:
                         cipher = daily_cipher['cipher']
                         bonus = daily_cipher['bonusCoins']
                         is_claimed = daily_cipher['isClaimed']
@@ -213,7 +220,7 @@ class Tapper:
                     await asyncio.sleep(delay=2)
 
                     daily_mini_game = game_config.get('dailyKeysMiniGame')
-                    if daily_mini_game:
+                    if daily_mini_game and settings.APPLY_DAILY_MINI_GAME:
                         is_claimed = daily_mini_game['isClaimed']
                         seconds_to_next_attempt = daily_mini_game['remainSecondsToNextAttempt']
                         start_date = daily_mini_game['startDate']
@@ -262,70 +269,50 @@ class Tapper:
 
                     await asyncio.sleep(delay=2)
 
-                    promos = game_config.get('clickerConfig', {}).get('promos')
-                    if promos:
-                        promo_apps = promos['apps']
-                        event_timeout = promos['registerEventTimeoutSec']
+                    if settings.APPLY_PROMO_CODES:
+                        promos_data = await get_promos(http_client=http_client)
+                        promo_states = promos_data.get('states', [])
 
-                        for app in promo_apps:
-                            promos_data = await get_promos(http_client=http_client)
-                            promo_states = promos_data.get('states', [])
+                        promo_activates = {promo['promoId']: promo['receiveKeysToday']
+                                           for promo in promo_states}
 
-                            promo_activates = {promo['promoId']: promo['receiveKeysToday']
-                                               for promo in promo_states}
+                        app_token = "d28721be-fd2d-4b45-869e-9f253b554e50"
+                        promo_id = "43e35910-c168-4634-ad4f-52fd764a843f"
 
-                            is_blocked = app['blocked']
+                        keys_per_day = 4
+                        keys_per_code = 1
 
-                            if is_blocked:
+                        today_promo_activates_count = promo_activates.get(promo_id, 0)
+
+                        while today_promo_activates_count < keys_per_day:
+                            promo_code = await get_promo_code(app_token=app_token,
+                                                              promo_id=promo_id,
+                                                              max_attempts=10,
+                                                              event_timeout=20,
+                                                              session_name=self.session_name,
+                                                              proxy=proxy)
+
+                            if not promo_code:
                                 continue
 
-                            app_token = app['token']
-                            promos = app['promos']
+                            profile_data, promo_state = await apply_promo(http_client=http_client,
+                                                                          promo_code=promo_code)
 
-                            for promo in promos:
-                                is_blocked = promo['blocked']
+                            if profile_data and promo_state:
+                                total_keys = profile_data.get('totalKeys', total_keys)
+                                today_promo_activates_count = promo_state.get('receiveKeysToday',
+                                                                              today_promo_activates_count)
 
-                                if is_blocked:
-                                    continue
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully activated promo code <lc>{promo_code}</lc> in <lm>BIKE</lm> game | "
+                                               f"Get <ly>{today_promo_activates_count}</ly><lw>/</lw><ly>{keys_per_day}</ly> keys | "
+                                               f"Total keys: <le>{total_keys}</le> (<lg>+{keys_per_code}</lg>)")
+                            else:
+                                logger.info(f"{self.session_name} | "
+                                            f"Promo code <lc>{promo_code}</lc> was wrong in <lm>BIKE</lm> game | "
+                                            f"Trying again...")
 
-                                promo_id = promo['promoId']
-                                prefix = promo['prefix']
-
-                                max_attempts = promo['eventsCount']
-                                keys_per_day = promo['keysPerDay']
-                                keys_per_code = promo['keysPerCode']
-
-                                today_promo_activates_count = promo_activates.get(promo_id, 0)
-
-                                while today_promo_activates_count < keys_per_day:
-                                    promo_code = await get_promo_code(app_token=app_token,
-                                                                      promo_id=promo_id,
-                                                                      max_attempts=max_attempts,
-                                                                      event_timeout=event_timeout,
-                                                                      session_name=self.session_name,
-                                                                      proxy=proxy)
-
-                                    if not promo_code:
-                                        continue
-
-                                    profile_data, promo_state = await apply_promo(http_client=http_client,
-                                                                                  promo_code=promo_code)
-
-                                    if profile_data and promo_state:
-                                        total_keys = profile_data.get('totalKeys', total_keys)
-                                        today_promo_activates_count = promo_state.get('receiveKeysToday',
-                                                                                      today_promo_activates_count)
-
-                                        logger.success(f"{self.session_name} | "
-                                                       f"Successfully activated promo code <lc>{promo_code}</lc> in <lm>{prefix}</lm> game | "
-                                                       f"Get <ly>{today_promo_activates_count}</ly><lw>/</lw><ly>{keys_per_day}</ly> keys | "
-                                                       f"Total keys: <le>{total_keys}</le> (<lg>+{keys_per_code}</lg>)")
-                                    else:
-                                        logger.info(f"{self.session_name} | "
-                                                    f"Promo code <lc>{promo_code}</lc> was wrong in <lm>{prefix}</lm> game | "
-                                                    f"Trying again...")
-
-                                    await asyncio.sleep(delay=2)
+                            await asyncio.sleep(delay=2)
 
                     await asyncio.sleep(delay=2)
 
