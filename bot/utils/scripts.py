@@ -1,6 +1,7 @@
 import os
 import glob
 import time
+import uuid
 import random
 import string
 import base64
@@ -175,20 +176,15 @@ async def get_mini_game_cipher(http_client: aiohttp.ClientSession,
 
 
 def generate_client_id():
-    timestamp = str(int(time.time() * 1000))
-    random_digits = ''.join(random.choices(string.digits, k=19))
+    current_time = int(time.time() * 1000)
+    random_part = random.randint(100, 999)
+    random_first = int(str(current_time)[:10] + str(random_part))
 
-    return f"{timestamp}-{random_digits}"
+    return f"{random_first}-3472514666961597005"
 
 
 def generate_event_id():
-    first_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
-    second_part = ''.join(random.choices(string.digits, k=4))
-    third_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
-    fourth_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
-    fifth_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-
-    return f"{first_part}-{second_part}-{third_part}-{fourth_part}-{fifth_part}"
+    return str(uuid.uuid4())
 
 
 async def get_promo_code(app_token: str,
@@ -265,7 +261,7 @@ async def get_promo_code(app_token: str,
 
             attempts += 1
 
-            logger.debug(f"{session_name} | Attempt <lr>{attempts}</lr> was unsuccessful | "
+            logger.debug(f"{session_name} | Attempt <lr>{attempts}</lr> was successful | "
                          f"Sleep <lw>{event_timeout}s</lw> before <lr>{attempts + 1}</lr> attempt to get promo code")
             await asyncio.sleep(delay=event_timeout)
 
