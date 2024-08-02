@@ -13,7 +13,7 @@ async def get_nuxt_builds(
         response_json = await make_request(
             http_client,
             'GET',
-            'https://hamsterkombatgame.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json',
+            'https://hamsterkombatgame.io/_nuxt/builds/meta/9091d68b-4157-4eaf-a9f5-e3f3def26c8e.json',
             None,
             'getting Nuxt Builds'
         )
