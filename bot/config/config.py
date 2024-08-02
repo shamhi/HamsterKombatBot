@@ -19,7 +19,14 @@ class Settings(BaseSettings):
 
     MAX_COMBO_PRICE: int = 10000000
 
-    APPLY_DAILY_ENERGY: bool = False
+    APPLY_COMBO: bool = True
+    APPLY_PROMO_CODES: bool = True
+    APPLY_DAILY_CIPHER: bool = True
+    APPLY_DAILY_REWARD: bool = True
+    APPLY_DAILY_ENERGY: bool = True
+    APPLY_DAILY_MINI_GAME: bool = True
+
+    USE_RANDOM_MINI_GAME_KEY: bool = True
 
     USE_TAPS: bool = True
     RANDOM_TAPS_COUNT: list[int] = [10, 50]
@@ -27,8 +34,6 @@ class Settings(BaseSettings):
 
     USE_RANDOM_DELAY_IN_RUN: bool = False
     RANDOM_DELAY_IN_RUN: list[int] = [0, 15]
-
-    USE_RANDOM_MINI_GAME_KEY: bool = False
 
     USE_RANDOM_USERAGENT: bool = False
 
