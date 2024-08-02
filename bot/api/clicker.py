@@ -85,7 +85,7 @@ async def send_taps(
         {
             'availableTaps': available_energy,
             'count': taps,
-            'timestamp': time(),
+            'timestamp': int(time()),
         },
         'Tapping',
         ignore_status=422,
