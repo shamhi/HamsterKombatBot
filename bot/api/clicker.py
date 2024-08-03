@@ -91,6 +91,6 @@ async def send_taps(
         ignore_status=422,
     )
 
-    player_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
 
-    return player_data
+    return profile_data
