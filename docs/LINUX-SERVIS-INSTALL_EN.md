@@ -42,7 +42,7 @@ _Setting bot as service allows you to run it in backrgound and easily control._
     > User=root
     > WorkingDirectory=/root/example/HamsterKombatBot/
     > Environment=PATH=/root/example/HamsterKombatBot/venv/bin/
-    > ExecStart=/root/example/HamsterKombatBot/venv/bin/python3 /root/example/> HamsterKombatBot/main.py -a 2
+    > ExecStart=/root/example/HamsterKombatBot/venv/bin/python3 /root/example/HamsterKombatBot/main.py -a 2
     > 
     > Restart=always
     > 
