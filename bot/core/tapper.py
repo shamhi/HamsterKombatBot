@@ -391,6 +391,7 @@ class Tapper:
                                    f"Balance: <lc>{balance:,}</lc> (<lg>+{calc_taps:,}</lg>) | Total: <le>{total:,}</le>")
 
                 if settings.AUTO_UPGRADE is True:
+                    upgrades = upgrades.get('upgradesForBuy') if isinstance(upgrades, dict) else upgrades
                     for _ in range(settings.UPGRADES_COUNT):
                         available_upgrades = [
                             data for data in upgrades
