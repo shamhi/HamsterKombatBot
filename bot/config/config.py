@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     BALANCE_TO_SAVE: int = 1000000
     UPGRADES_COUNT: int = 10
 
-    MAX_COMBO_PRICE: int = 10000000
+    MAX_COMBO_PRICE: int = 2500000
 
     APPLY_COMBO: bool = True
     APPLY_PROMO_CODES: bool = True
