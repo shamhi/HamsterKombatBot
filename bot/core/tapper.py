@@ -205,7 +205,7 @@ class Tapper:
                             logger.info(f"{self.session_name} | Daily Reward already claimed today")
 
                         tasks = await get_tasks(http_client=http_client)
-                        upgrades = await get_upgrades(http_client=http_client)
+                        upgrades_data = await get_upgrades(http_client=http_client)
 
                     await asyncio.sleep(delay=randint(2, 4))
 
@@ -356,7 +356,7 @@ class Tapper:
                                 else:
                                     logger.info(f"{self.session_name} | Task <ly>{task_id}</ly> is not complete")
 
-                        upgrades = await get_upgrades(http_client=http_client)
+                        upgrades_data = await get_upgrades(http_client=http_client)
 
                     await asyncio.sleep(delay=randint(2, 4))
 
