@@ -28,6 +28,8 @@ class Settings(BaseSettings):
 
     USE_RANDOM_MINI_GAME_KEY: bool = True
 
+    AUTO_COMPLETE_TASKS: bool = True
+
     USE_TAPS: bool = True
     RANDOM_TAPS_COUNT: list[int] = [10, 50]
     SLEEP_BETWEEN_TAP: list[int] = [10, 25]
