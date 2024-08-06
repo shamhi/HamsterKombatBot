@@ -189,6 +189,7 @@ def generate_event_id():
 
 async def get_promo_code(app_token: str,
                          promo_id: str,
+                         promo_title: str,
                          max_attempts: int,
                          event_timeout: int,
                          session_name: str,
@@ -237,7 +238,6 @@ async def get_promo_code(app_token: str,
                 }
 
                 response = await http_client.post(url="https://api.gamepromo.io/promo/register-event", json=json_data)
-                response.raise_for_status()
 
                 response_json = await response.json()
                 has_code = response_json.get("hasCode", False)
@@ -254,15 +254,18 @@ async def get_promo_code(app_token: str,
                     promo_code = response_json.get("promoCode")
 
                     if promo_code:
-                        logger.info(f"{session_name} | Promo code is found: <lc>{promo_code}</lc>")
+                        logger.info(f"{session_name} | "
+                                    f"Promo code is found for <lm>{promo_title}</lm> game: <lc>{promo_code}</lc>")
                         return promo_code
             except Exception as error:
                 logger.debug(f"{session_name} | Error while getting promo code: {error}")
 
             attempts += 1
 
-            logger.debug(f"{session_name} | Attempt <lr>{attempts}</lr> was successful | "
-                         f"Sleep <lw>{event_timeout}s</lw> before <lr>{attempts + 1}</lr> attempt to get promo code")
+            logger.debug(
+                f"{session_name} | Attempt <lr>{attempts}</lr> was successful for <lm>{promo_title}</lm> game | "
+                f"Sleep <lw>{event_timeout}s</lw> before <lr>{attempts + 1}</lr> attempt to get promo code")
             await asyncio.sleep(delay=event_timeout)
 
-    logger.debug(f"{session_name} | Promo code not found out of <lw>{max_attempts}</lw> attempts")
+    logger.debug(f"{session_name} | "
+                 f"Promo code not found out of <lw>{max_attempts}</lw> attempts for <lm>{promo_title}</lm> game ")
