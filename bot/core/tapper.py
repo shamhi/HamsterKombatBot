@@ -428,7 +428,7 @@ class Tapper:
                             max_price_limit = earn_on_hour * 5
 
                             if ((free_money * 0.7) >= price
-                                    and profit > 0
+                                    and profit >= settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
                                     and price < max_price_limit):

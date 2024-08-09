@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     AUTO_UPGRADE: bool = False
     MAX_LEVEL: int = 20
+    MIN_PROFIT: int = 1000
     MAX_PRICE: int = 50000000
 
     BALANCE_TO_SAVE: int = 1000000
