@@ -1,5 +1,9 @@
 @echo off
 
+echo Check python version...
+python check_python.py
+if %errorlevel% neq 0 exit /b 1
+
 echo Creating virtual environment...
 python -m venv venv
 
@@ -8,6 +12,7 @@ call venv\Scripts\activate
 
 echo Installing dependencies...
 pip install -r requirements.txt
+if %errorlevel% neq 0 exit /b 1
 
 echo Installing playwright...
 playwright install --with-deps

@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import argparse
 from itertools import cycle
@@ -19,13 +20,6 @@ banner = """
 ▒█ ▒█ ▀  ▀ ▀   ▀ ▀▀▀   ▀   ▀▀▀ ▀ ▀▀ ▒█ ▒█ ▀▀▀▀ ▀   ▀ ▀▀▀  ▀  ▀   ▀   ▒█▄▄█ ▀▀▀▀   ▀  
 
 """
-options = """
-Select an action:
-
-    1. Create session
-    2. Run clicker
-"""
-
 
 async def get_tg_clients() -> list[Client]:
     session_names = get_session_names()
@@ -34,7 +28,10 @@ async def get_tg_clients() -> list[Client]:
         raise FileNotFoundError("Not found session files")
 
     if not settings.API_ID or not settings.API_HASH:
-        raise ValueError("API_ID and API_HASH not found in the .env file.")
+        print('1. Go to https://my.telegram.org and log in using your phone number.')
+        print('2. Select "API development tools" and fill out the form to register a new application.')
+        print('3. Note down the API_ID and API_HASH in .env file provided after registering your application.')
+        sys.exit()
 
     tg_clients = [Client(
         name=session_name,
@@ -47,35 +44,23 @@ async def get_tg_clients() -> list[Client]:
 
 
 async def process() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--action', type=int, help='Action to perform')
-
     print(banner)
 
-    logger.info(f"Detected {len(get_session_names())} sessions")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', '--add', action='store_true', help='Add new session')
+    args = parser.parse_args()
 
-    action = parser.parse_args().action
+    session_names = get_session_names()
+    logger.info(f"Detected {len(session_names)} sessions")
 
-    if not action:
-        print(options)
-
-        while True:
-            action = input("> ")
-
-            if not action.isdigit():
-                logger.warning("Action must be number")
-            elif action not in ['1', '2']:
-                logger.warning("Action must be 1 or 2")
-            else:
-                action = int(action)
-                break
-
-    if action == 1:
+    if not session_names or args.add:
         await register_sessions()
-    elif action == 2:
-        tg_clients = await get_tg_clients()
+    else:
+        print('')
 
-        await run_tasks(tg_clients=tg_clients)
+    tg_clients = await get_tg_clients()
+
+    await run_tasks(tg_clients=tg_clients)
 
 
 async def run_tasks(tg_clients: list[Client]):

@@ -34,6 +34,10 @@ if ! command -v python3 &> /dev/null; then
     install_python
 fi
 
+if ! python3 check_python.py; then
+    exit 1
+fi
+
 echo "Creating virtual environment..."
 python3 -m venv venv
 

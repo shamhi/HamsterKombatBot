@@ -53,7 +53,7 @@ Possible to create a profile with unique data for each session:
 
 ## ⚡ Quick Start
 1. To install libraries on Windows click on `INSTALL.bat`.
-2. To start the bot use `START.bat` (or in console: `python main.py`).
+2. To start the bot use `START.bat`.
 
 ## 📌 Prerequisites
 Before you begin, ensure you have the following installed:
@@ -90,11 +90,11 @@ You can download [**Repository**](https://github.com/shamhi/HamsterKombatBot) by
 ```
 > Installing as a Linux service for running the bot in the background [here](docs/LINUX-SERVIS-INSTALL_EN.md).
 
-⏳ Also for quick launch you can use arguments, for example:
+⏳ To add new account, run with --add argument:
 ```shell
-~/HamsterKombatBot >>> python3 main.py --action (1/2)
+~/HamsterKombatBot >>> START.bat --add
 # Or
-~/HamsterKombatBot >>> python3 main.py -a (1/2)
+~/HamsterKombatBot >>> START.bat -a
 
 #1 - Create session
 #2 - Run clicker

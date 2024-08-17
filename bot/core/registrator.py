@@ -1,5 +1,7 @@
 from pyrogram import Client
 
+import sys
+from datetime import datetime
 from bot.config import settings
 from bot.utils import logger
 from bot.utils.json_db import JsonDB
@@ -12,14 +14,14 @@ async def register_sessions() -> None:
     API_HASH = settings.API_HASH
 
     if not API_ID or not API_HASH:
-        raise ValueError("API_ID and API_HASH not found in the .env file.")
+        print('1. Go to https://my.telegram.org and log in using your phone number.')
+        print('2. Select "API development tools" and fill out the form to register a new application.')
+        print('3. Note down the API_ID and API_HASH in .env file provided after registering your application.')
+        sys.exit()
 
-    session_name = input('\nEnter the session name (Press Enter to exit): ')
+    session_name = str(datetime.now())
 
-    if not session_name:
-        return None
-
-    proxy = input('\nEnter proxy (Press Enter to continue): ')
+    proxy = input('\nEnter proxy, or leave empty (Press Enter to continue): ')
 
     proxy_dict = get_proxy_dict(proxy)
 
