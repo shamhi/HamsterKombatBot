@@ -5,6 +5,12 @@
 
 > 🇷🇺 README на русском доступен [здесь](README.md)
 
+## ⚡ Quick Start
+1. Install [Python](https://www.python.org/downloads/) version 3.10 or 3.11
+2. Donwload and extract files https://github.com/georg95/HamsterKombatBot/archive/refs/heads/main.zip
+3. Run INSTALL.bat
+4. Run START.bat
+
 ## ⚙ [Settings](https://github.com/shamhi/HamsterKombatBot/blob/main/.env-example)
 | Setting                      | Description                                                                              |
 |------------------------------|------------------------------------------------------------------------------------------|
@@ -50,14 +56,6 @@ Possible to create a profile with unique data for each session:
 }
 ```
 > ❕ **Note**:  `session1` и `session2` - are examples of session names.
-
-## ⚡ Quick Start
-1. To install libraries on Windows click on `INSTALL.bat`.
-2. To start the bot use `START.bat`.
-
-## 📌 Prerequisites
-Before you begin, ensure you have the following installed:
-- [Python](https://www.python.org/downloads/) version 3.10 or 3.11
 
 ## 📃 Getting API Keys
 1. Go to [my.telegram.org](https://my.telegram.org) and log in using your phone number.
