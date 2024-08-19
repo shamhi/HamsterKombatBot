@@ -16,7 +16,14 @@ from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher, 
 from bot.exceptions import InvalidSession
 
 from bot.api.auth import login
-from bot.api.clicker import get_config, get_profile_data, get_ip_info, get_account_info, get_skins, send_taps
+from bot.api.clicker import (
+    get_version_config,
+    get_game_config,
+    get_profile_data,
+    get_ip_info,
+    get_account_info,
+    get_skins,
+    send_taps)
 from bot.api.boosts import get_boosts, apply_boost
 from bot.api.upgrades import get_upgrades, buy_upgrade
 from bot.api.combo import claim_daily_combo, get_combo_cards
@@ -85,7 +92,14 @@ class Tapper:
 
                     account_info = await get_account_info(http_client=http_client)
                     profile_data = await get_profile_data(http_client=http_client)
-                    game_config = await get_config(http_client=http_client)
+
+                    config_version = http_client.headers.get('Config-Version')
+                    http_client.headers.pop('Config-Version', None)
+                    if config_version:
+                        version_config = await get_version_config(http_client=http_client,
+                                                                  config_version=config_version)
+
+                    game_config = await get_game_config(http_client=http_client)
                     upgrades_data = await get_upgrades(http_client=http_client)
                     tasks = await get_tasks(http_client=http_client)
                     airdrop_tasks = await get_airdrop_tasks(http_client=http_client)

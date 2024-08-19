@@ -6,7 +6,21 @@ import aiohttp
 from bot.api.http import make_request
 
 
-async def get_config(
+async def get_version_config(
+        http_client: aiohttp.ClientSession, config_version: str
+) -> dict[Any, Any] | Any:
+    response_json = await make_request(
+        http_client,
+        'GET',
+        f'https://api.hamsterkombatgame.io/clicker/config/{config_version}',
+        {},
+        'getting Version Config',
+    )
+
+    return response_json
+
+
+async def get_game_config(
         http_client: aiohttp.ClientSession,
 ) -> dict[Any, Any] | Any:
     response_json = await make_request(
@@ -14,7 +28,7 @@ async def get_config(
         'POST',
         'https://api.hamsterkombatgame.io/clicker/config',
         {},
-        'getting Config',
+        'getting Game Config',
     )
 
     return response_json
