@@ -313,7 +313,7 @@ class Tapper:
 
                             app = apps.get(promo_id)
                             app_token = app['appToken']
-                            event_timeout = app['minWaitAfterLogin']
+                            event_timeout = app['event_timeout']
 
                             if not app_token:
                                 continue
