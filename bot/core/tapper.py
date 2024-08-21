@@ -28,7 +28,7 @@ from bot.api.boosts import get_boosts, apply_boost
 from bot.api.upgrades import get_upgrades, buy_upgrade
 from bot.api.combo import claim_daily_combo, get_combo_cards
 from bot.api.cipher import claim_daily_cipher
-from bot.api.promo import get_promos, apply_promo
+from bot.api.promo import get_apps_info, get_promos, apply_promo
 from bot.api.minigame import start_daily_mini_game, claim_daily_mini_game
 from bot.api.tasks import get_tasks, get_airdrop_tasks, check_task
 from bot.api.exchange import select_exchange
@@ -299,19 +299,22 @@ class Tapper:
                         promo_activates = {promo['promoId']: promo['receiveKeysToday']
                                            for promo in promo_states}
 
-                        app_tokens = {
-                            "fe693b26-b342-4159-8808-15e3ff7f8767": "74ee0b5b-775e-4bee-974f-63e7f4d5bacb",
-                            "b4170868-cef0-424f-8eb9-be0622e8e8e3": "d1690a07-3780-4068-810f-9b5bbf2931b2",
-                            "c4480ac7-e178-4973-8061-9ed5b2e17954": "82647f43-3f87-402d-88dd-09a90025313f",
-                            "43e35910-c168-4634-ad4f-52fd764a843f": "d28721be-fd2d-4b45-869e-9f253b554e50",
-                            "dc128d28-c45b-411c-98ff-ac7726fbaea4": "8d1cc2ad-e097-4b86-90ef-7a27e19fb833",
-                            "61308365-9d16-4040-8bb0-2f4a4c69074c": "61308365-9d16-4040-8bb0-2f4a4c69074c"
+                        apps_info = await get_apps_info(http_client=http_client)
+                        apps = {
+                            app['promoId']: {
+                                'appToken': app['appToken'],
+                                'event_timeout': app['minWaitAfterLogin']
+                            } for app in apps_info
                         }
 
                         promos = promos_data.get('promos', [])
                         for promo in promos:
                             promo_id = promo['promoId']
-                            app_token = app_tokens.get(promo_id)
+
+                            app = apps.get(promo_id)
+                            app_token = app['appToken']
+                            event_timeout = app['minWaitAfterLogin']
+
                             if not app_token:
                                 continue
 
@@ -330,7 +333,7 @@ class Tapper:
                                                                   promo_id=promo_id,
                                                                   promo_title=title,
                                                                   max_attempts=20,
-                                                                  event_timeout=120 if title == "My Clone Army" else 20,
+                                                                  event_timeout=event_timeout,
                                                                   session_name=self.session_name,
                                                                   proxy=proxy)
 
