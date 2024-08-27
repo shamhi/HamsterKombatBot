@@ -57,7 +57,7 @@ _Setting bot as service allows you to run it in backrgound and easily control._
 #### IV. Start service
 1. Reload system manager config using terminal:
     `sudo systemctl daemon-reload`
-1. Enable service, setting it as autostarted:
+2. Enable service, setting it as autostarted:
     `sudo systemctl enable hamsterbot.service`
 ___
 **Now we are done.**
