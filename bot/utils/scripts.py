@@ -60,7 +60,11 @@ def get_headers(name: str):
         )
         headers['User-Agent'] = get_mobile_user_agent()
 
-        profiles[name]['headers'] = headers
+        if not profiles.get(name):
+            profiles[name] = {"proxy": "", "headers": headers}
+        else:
+            profiles[name]["headers"] = headers
+
         db.save_data(profiles)
 
     return headers
