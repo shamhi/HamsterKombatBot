@@ -219,7 +219,7 @@
 </details>
 
 
-## 📕 [Профили](profiles.json)
+## 📕 [Profiles](profiles.json)
 For each session, you can create a profile with unique data:
 ```json
 {
