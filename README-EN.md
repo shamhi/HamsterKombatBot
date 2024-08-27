@@ -224,7 +224,7 @@ For each session, you can create a profile with unique data:
 ```json
 {
   "session1": {
-    "proxy": "socks5://yGow3a:uBro3wL@58.195.21.83:9715",
+    "proxy": "http://yGow3a:uBro3wL@58.195.21.83:9715",
     "headers": {},
     "fingerprint": {}
   },
