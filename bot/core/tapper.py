@@ -60,6 +60,11 @@ class Tapper:
         tg_web_data = await get_tg_web_data(tg_client=self.tg_client, proxy=proxy, session_name=self.session_name)
 
         if not tg_web_data:
+            if not http_client.closed:
+                await http_client.close()
+            if not proxy_conn.closed:
+                proxy_conn.close()
+
             return
 
         while True:

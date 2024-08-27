@@ -63,12 +63,7 @@ async def get_tg_web_data(
 
         auth_url = web_view.url
         tg_web_data = unquote(
-            string=unquote(
-                string=auth_url.split('tgWebAppData=', maxsplit=1)[1].split(
-                    '&tgWebAppVersion', maxsplit=1
-                )[0]
-            )
-        )
+            string=auth_url.split('tgWebAppData=', maxsplit=1)[1].split('&tgWebAppVersion', maxsplit=1)[0])
 
         if tg_client.is_connected:
             await tg_client.disconnect()
@@ -79,7 +74,5 @@ async def get_tg_web_data(
         raise error
 
     except Exception as error:
-        logger.error(
-            f'{session_name} | Unknown error during Authorization: {error}'
-        )
+        logger.error(f"{session_name} | Unknown error while getting Tg Web Data: {error}")
         await asyncio.sleep(delay=3)
