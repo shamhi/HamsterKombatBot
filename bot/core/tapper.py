@@ -62,8 +62,9 @@ class Tapper:
         if not tg_web_data:
             if not http_client.closed:
                 await http_client.close()
-            if not proxy_conn.closed:
-                proxy_conn.close()
+            if proxy_conn:
+                if not proxy_conn.closed:
+                    proxy_conn.close()
 
             return
 
@@ -317,8 +318,12 @@ class Tapper:
                             promo_id = promo['promoId']
 
                             app = apps.get(promo_id)
-                            app_token = app['appToken']
-                            event_timeout = app['event_timeout']
+
+                            if not app:
+                                continue
+
+                            app_token = app.get('appToken')
+                            event_timeout = app.get('event_timeout')
 
                             if not app_token:
                                 continue
