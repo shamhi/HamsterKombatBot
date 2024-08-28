@@ -244,18 +244,18 @@ For each session, you can create a profile with unique data:
 2. To start the bot, use `START.bat` (or in the console: python main.py) if you use Windows or `start.sh` on Linux.
 
 
-## 📌 Предварительные условия
+## 📌 Prerequisites
 Before you start, make sure you have the following installed:
 - [Python](https://www.python.org/downloads/) version 3.10 or 3.11.
 
 
-## 📃 Получение API ключей
+## 📃 Getting API keys
 1. Go to [my.telegram.org](https://my.telegram.org) and log in using your phone number.
 2. Select **"API development tools"** and fill out the form to register a new application.
 3. Record the `API_ID` and `API_HASH` in the `.env` file, provided after registering your application.
 
 
-## 🧱 Установка
+## 🧱 Installation
 You can download the [**Repository**](https://github.com/shamhi/HamsterKombatBot) by cloning it to your system and installing the required dependencies:
 ```shell
 ~ >>> git clone https://github.com/shamhi/HamsterKombatBot.git 
