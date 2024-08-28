@@ -1,0 +1,22 @@
+pkg update && pkg upgrade -y
+pkg install python wget -y
+pkg install rust -y
+
+python -m venv venv
+source venv/bin/activate
+
+cp termux-requirements.txt requirements.txt
+cp bot/utils/termux-scripts.py bot/utils/scripts.py
+cp .env-example .env
+
+pip install --upgrade pip
+pip install -r requirements.txt
+
+read -p "Enter your API ID: " API_ID
+read -p "Enter your API Hash: " API_HASH
+
+sed -i "s/^API_ID=.*/API_ID=${API_ID}/" .env
+sed -i "s/^API_HASH=.*/API_HASH=${API_HASH}/" .env
+
+python main.py -a 1
+python main.py -a 2
