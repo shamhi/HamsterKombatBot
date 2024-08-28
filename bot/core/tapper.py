@@ -62,8 +62,9 @@ class Tapper:
         if not tg_web_data:
             if not http_client.closed:
                 await http_client.close()
-            if not proxy_conn.closed:
-                proxy_conn.close()
+            if proxy_conn:
+                if not proxy_conn.closed:
+                    proxy_conn.close()
 
             return
 
