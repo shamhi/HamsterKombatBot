@@ -17,7 +17,7 @@ async def make_request(
 ) -> dict:
     response_text = ''
     try:
-        response = await http_client.request(method=method, url=url, json=json_data)
+        response = await http_client.request(method=method, url=url, json=json_data, ssl=False)
 
         config_version = response.headers.get('Config-Version')
         if config_version and not http_client.headers.get('Config-Version'):
