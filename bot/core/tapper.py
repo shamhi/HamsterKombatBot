@@ -403,7 +403,7 @@ class Tapper:
                                 promo_code = await get_promo_code(app_token=app_token,
                                                                   promo_id=promo_id,
                                                                   promo_title=title,
-                                                                  max_attempts=20,
+                                                                  max_attempts=30,
                                                                   event_timeout=event_timeout,
                                                                   session_name=self.session_name,
                                                                   proxy=proxy)
