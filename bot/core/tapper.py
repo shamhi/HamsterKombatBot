@@ -97,6 +97,8 @@ class Tapper:
                     access_token_created_time = time()
 
                     account_info = await get_account_info(http_client=http_client)
+                    user_id = account_info.get('accountInfo', {}).get('id', 1)
+
                     profile_data = await get_profile_data(http_client=http_client)
 
                     config_version = http_client.headers.get('Config-Version')
@@ -248,32 +250,35 @@ class Tapper:
 
                     await asyncio.sleep(delay=randint(2, 4))
 
-                    daily_mini_game = game_config.get('dailyKeysMiniGame')
+                    daily_mini_game = game_config.get('dailyKeysMiniGames')
                     if daily_mini_game and settings.APPLY_DAILY_MINI_GAME:
-                        is_claimed = daily_mini_game['isClaimed']
-                        seconds_to_next_attempt = daily_mini_game['remainSecondsToNextAttempt']
-                        start_date = daily_mini_game['startDate']
-                        user_id = profile_data['id']
+                        candles_mini_game = daily_mini_game.get('Candles')
+                        if candles_mini_game:
+                            is_claimed = candles_mini_game['isClaimed']
+                            seconds_to_next_attempt = candles_mini_game['remainSecondsToNextAttempt']
+                            start_date = candles_mini_game['startDate']
+                            mini_game_id = candles_mini_game['id']
 
                         if not is_claimed and seconds_to_next_attempt <= 0:
                             game_sleep_time = randint(12, 26)
 
                             encoded_body = await get_mini_game_cipher(
-                                http_client=http_client,
                                 user_id=user_id,
-                                session_name=self.session_name,
                                 start_date=start_date,
-                                game_sleep_time=game_sleep_time
+                                score=0,
+                                mini_game_id=mini_game_id,
                             )
 
                             if encoded_body:
-                                await start_daily_mini_game(http_client=http_client)
+                                await start_daily_mini_game(http_client=http_client,
+                                                            mini_game_id=mini_game_id)
 
-                                logger.info(f"{self.session_name} | Sleep <lw>{game_sleep_time}s</lw> in Mini Game")
+                                logger.info(f"{self.session_name} | "
+                                            f"Sleep <lw>{game_sleep_time}s</lw> in Mini Game <lm>{mini_game_id}</lm>")
                                 await asyncio.sleep(delay=game_sleep_time)
 
-                                profile_data, daily_mini_game = await claim_daily_mini_game(http_client=http_client,
-                                                                                            cipher=encoded_body)
+                                profile_data, daily_mini_game, bonus = await claim_daily_mini_game(
+                                    http_client=http_client, cipher=encoded_body, mini_game_id=mini_game_id)
 
                                 await asyncio.sleep(delay=2)
 
@@ -282,19 +287,77 @@ class Tapper:
 
                                     if is_claimed:
                                         new_total_keys = profile_data.get('totalKeys', total_keys)
-                                        calc_keys = new_total_keys - total_keys
-                                        total_keys = new_total_keys
 
-                                        logger.success(f"{self.session_name} | Successfully claimed Mini Game | "
-                                                       f"Total keys: <le>{total_keys}</le> (<lg>+{calc_keys}</lg>)")
+                                        logger.success(f"{self.session_name} | "
+                                                       f"Successfully claimed Mini Game <lm>{mini_game_id}</lm> | "
+                                                       f"Total keys: <le>{new_total_keys}</le> (<lg>+{bonus}</lg>)")
                         else:
                             if is_claimed:
-                                logger.info(f"{self.session_name} | Daily Mini Game already claimed today")
+                                logger.info(
+                                    f"{self.session_name} | Daily Mini Game <lm>{mini_game_id}</lm> already claimed today")
                             elif seconds_to_next_attempt > 0:
                                 logger.info(f"{self.session_name} | "
-                                            f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game")
+                                            f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game <lm>{mini_game_id}</lm>")
                             elif not encoded_body:
-                                logger.info(f"{self.session_name} | Key for Mini Game is not found")
+                                logger.info(
+                                    f"{self.session_name} | Key for Mini Game <lm>{mini_game_id}</lm> is not found")
+
+                    await asyncio.sleep(delay=randint(2, 4))
+
+                    for _ in range(randint(a=settings.GAMES_COUNT[0], b=settings.GAMES_COUNT[1])):
+                        daily_mini_game = game_config.get('dailyKeysMiniGames')
+                        if daily_mini_game and settings.APPLY_DAILY_MINI_GAME:
+                            tiles_mini_game = daily_mini_game.get('Tiles')
+                            if candles_mini_game:
+                                is_claimed = tiles_mini_game['isClaimed']
+                                seconds_to_next_attempt = tiles_mini_game['remainSecondsToNextAttempt']
+                                start_date = tiles_mini_game['startDate']
+                                mini_game_id = tiles_mini_game['id']
+                                remain_points = tiles_mini_game['remainPoints']
+
+                            if not is_claimed and remain_points > 0:
+                                game_sleep_time = randint(a=settings.SLEEP_MINI_GAME_TILES[0],
+                                                          b=settings.SLEEP_MINI_GAME_TILES[1])
+                                game_score = randint(a=settings.SCORE_MINI_GAME_TILES[0],
+                                                     b=settings.SCORE_MINI_GAME_TILES[1])
+
+                                if game_score > remain_points:
+                                    continue
+
+                                encoded_body = await get_mini_game_cipher(
+                                    user_id=user_id,
+                                    start_date=start_date,
+                                    score=game_score,
+                                    mini_game_id=mini_game_id,
+                                )
+
+                                if encoded_body:
+                                    await start_daily_mini_game(http_client=http_client, mini_game_id=mini_game_id)
+
+                                    logger.info(f"{self.session_name} | "
+                                                f"Sleep <lw>{game_sleep_time}s</lw> in Mini Game <lm>{mini_game_id}</lm>")
+                                    await asyncio.sleep(delay=game_sleep_time)
+
+                                    profile_data, daily_mini_game, bonus = await claim_daily_mini_game(
+                                        http_client=http_client, cipher=encoded_body, mini_game_id=mini_game_id)
+
+                                    await asyncio.sleep(delay=2)
+
+                                    if bonus:
+                                        new_balance = int(profile_data.get('balanceCoins', 0))
+                                        balance = new_balance
+
+                                        logger.success(
+                                            f"{self.session_name} | Successfully claimed Mini Game <lm>{mini_game_id}</lm> | "
+                                            f"Balance <le>{balance:,}</le> (<lg>+{bonus:,}</lg>)")
+                            else:
+                                if is_claimed:
+                                    logger.info(f"{self.session_name} | Daily Mini Game already claimed today")
+                                elif seconds_to_next_attempt > 0:
+                                    logger.info(f"{self.session_name} | "
+                                                f"Need <lw>{seconds_to_next_attempt}s</lw> to next attempt in Mini Game")
+                                elif not encoded_body:
+                                    logger.info(f"{self.session_name} | Key for Mini Game is not found")
 
                     await asyncio.sleep(delay=randint(2, 4))
 
