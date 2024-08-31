@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     SCORE_MINI_GAME_TILES: list[int] = [300, 500]
     GAMES_COUNT: list[int] = [1, 10]
 
+    USE_RANDOM_MINI_GAME_KEY: bool = True
+
     AUTO_COMPLETE_TASKS: bool = True
 
     USE_TAPS: bool = True
