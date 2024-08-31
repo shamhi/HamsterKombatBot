@@ -147,6 +147,33 @@
 </details>
 
 <details>
+  <summary><b>SLEEP_MINI_GAME_TILES</b> - Задержка в мини игре TILES</summary>
+  <p>Опция для установления рандомной задержки от начала игры до ее конца.</p>
+  <ul>
+    <li><strong>Пример:</strong> <code>[600,900]</code></li>
+    <li><strong>Дефолт:</strong> <code>[600,900]</code></li>
+  </ul>
+</details>
+
+<details>
+  <summary><b>SCORE_MINI_GAME_TILES</b> - Максимальный счет для игры TILES</summary>
+  <p>Устанавливает рандомный счет, который будет достигнут в игре.</p>
+  <ul>
+    <li><strong>Пример:</strong> <code>[300,500]</code></li>
+    <li><strong>Дефолт:</strong> <code>[300,500]</code></li>
+  </ul>
+</details>
+
+<details>
+  <summary><b>GAMES_COUNT</b> - Количество игр в TILES</summary>
+  <p>Определяет рандомное количество игр, которые сыграет бот в одном цикле.</p>
+  <ul>
+    <li><strong>Пример:</strong> <code>[1,10]</code></li>
+    <li><strong>Дефолт:</strong> <code>[1,10]</code></li>
+  </ul>
+</details>
+
+<details>
   <summary><b>USE_RANDOM_MINI_GAME_KEY</b> - Использование рандомного ключа для мини игры</summary>
   <p>Опция для использования случайного ключа при участии в мини-играх. Необходима, если у вас одновременно работают много аккаунтов, чтобы не перегружать систему</p>
   <ul>
