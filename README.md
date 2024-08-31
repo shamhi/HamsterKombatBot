@@ -174,15 +174,6 @@
 </details>
 
 <details>
-  <summary><b>USE_RANDOM_MINI_GAME_KEY</b> - Использование рандомного ключа для мини игры</summary>
-  <p>Опция для использования случайного ключа при участии в мини-играх. Необходима, если у вас одновременно работают много аккаунтов, чтобы не перегружать систему</p>
-  <ul>
-    <li><strong>Пример:</strong> <code>True / False</code></li>
-    <li><strong>Дефолт:</strong> <code>True</code></li>
-  </ul>
-</details>
-
-<details>
   <summary><b>AUTO_COMPLETE_TASKS</b> - Выполнение заданий</summary>
   <p>Эта функция позволяет боту автоматически выполнять задачи, если они доступны.</p>
   <ul>
@@ -292,7 +283,6 @@
 ~/HamsterKombatBot >>> python3 -m venv venv
 ~/HamsterKombatBot >>> source venv/bin/activate
 ~/HamsterKombatBot >>> pip3 install -r requirements.txt
-~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> cp .env-example .env
 ~/HamsterKombatBot >>> nano .env  # Укажите ваши API_ID и API_HASH
 ~/HamsterKombatBot >>> python3 main.py
@@ -301,7 +291,6 @@
 ~/HamsterKombatBot >>> python -m venv venv
 ~/HamsterKombatBot >>> venv\Scripts\activate
 ~/HamsterKombatBot >>> pip install -r requirements.txt
-~/HamsterKombatBot >>> playwright install
 ~/HamsterKombatBot >>> copy .env-example .env
 ~/HamsterKombatBot >>> # Откройте файл .env и укажите ваши API_ID и API_HASH
 ~/HamsterKombatBot >>> python main.py
