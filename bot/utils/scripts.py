@@ -196,14 +196,19 @@ async def get_game_cipher(start_number: str):
 
 async def get_mini_game_cipher(user_id: int,
                                start_date: str,
-                               score: int,
-                               mini_game_id: str):
+                               mini_game_id: str,
+                               sleep: int = 40):
+    secret1 = "R1cHard_AnA1"
+    secret2 = "G1ve_Me_y0u7_Pa55w0rD"
+
     start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
     start_number = int(start_dt.replace(tzinfo=datetime.timezone.utc).timestamp())
+    cipher_score = (start_number + sleep) * 2
 
-    cipher_score = start_number * 2 + score
+    combined_string = f'{secret1}{cipher_score}{secret2}'
 
-    sig = hashlib.sha256(f'415t1ng{cipher_score}0ra1cum5h0t'.encode()).digest()
+    sig = hashlib.sha256(combined_string.encode()).digest()
     sig = base64.b64encode(sig).decode()
 
     game_cipher = await get_game_cipher(start_number=start_number)

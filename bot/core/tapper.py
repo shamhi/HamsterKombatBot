@@ -265,7 +265,6 @@ class Tapper:
                             encoded_body = await get_mini_game_cipher(
                                 user_id=user_id,
                                 start_date=start_date,
-                                score=0,
                                 mini_game_id=mini_game_id,
                             )
 
@@ -327,7 +326,6 @@ class Tapper:
                                 encoded_body = await get_mini_game_cipher(
                                     user_id=user_id,
                                     start_date=start_date,
-                                    score=game_score,
                                     mini_game_id=mini_game_id,
                                 )
 
@@ -347,9 +345,9 @@ class Tapper:
                                         new_balance = int(profile_data.get('balanceCoins', 0))
                                         balance = new_balance
 
-                                        logger.success(
-                                            f"{self.session_name} | Successfully claimed Mini Game <lm>{mini_game_id}</lm> | "
-                                            f"Balance <le>{balance:,}</le> (<lg>+{bonus:,}</lg>)")
+                                        logger.success(f"{self.session_name} | "
+                                                       f"Successfully claimed Mini Game <lm>{mini_game_id}</lm> | "
+                                                       f"Balance <le>{balance:,}</le> (<lg>+{bonus:,}</lg>)")
                             else:
                                 if is_claimed:
                                     logger.info(f"{self.session_name} | Daily Mini Game already claimed today")
