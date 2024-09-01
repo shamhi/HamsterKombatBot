@@ -422,7 +422,7 @@ class Tapper:
                                                                   proxy=proxy)
 
                                 if not promo_code:
-                                    continue
+                                    break
 
                                 profile_data, promo_state = await apply_promo(http_client=http_client,
                                                                               promo_code=promo_code)
