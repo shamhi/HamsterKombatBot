@@ -57,6 +57,15 @@
 </details>
 
 <details>
+  <summary><b>MIN_PROFIT</b> - Minimum Upgrade Profit</summary>
+  <p>Determines the minimum profit of the card that the bot will upgrade.</p>
+  <ul>
+    <li><strong>Example:</strong> <code>1000</code></li>
+    <li><strong>Default:</strong> <code>1000</code></li>
+  </ul>
+</details>
+
+<details>
   <summary><b>MAX_PRICE</b> - Maximum Upgrade Price</summary>
   <p>Sets the limit on the amount the bot can spend on a single card upgrade.</p>
   <ul>
