@@ -160,7 +160,7 @@ class Tapper:
 
                             if start_bonus_round <= datetime.now() < end_bonus_round:
                                 common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
-                                need_cards_count = len(cards)
+                                need_cards_count = 3 - len(upgraded_list)
                                 possible_cards_count = len(available_combo_cards)
                                 is_combo_accessible = need_cards_count == possible_cards_count
 
