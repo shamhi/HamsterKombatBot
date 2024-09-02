@@ -471,7 +471,7 @@ class Tapper:
                                                                 promo_code=promo_code)
 
                 if profile_data and promo_state:
-                    total_keys = profile_data.get('totalKeys', total_keys)
+                    total_keys = profile_data.get('totalKeys', self.total_keys)
                     today_promo_activates_count = promo_state.get('receiveKeysToday',
                                                                     today_promo_activates_count)
 
