@@ -35,6 +35,7 @@ from bot.api.tasks import get_tasks, get_airdrop_tasks, check_task
 from bot.api.exchange import select_exchange
 from bot.api.nuxt import get_nuxt_builds
 
+
 class Tapper:
     def __init__(self, tg_client: Client):
         self.session_name = tg_client.name
@@ -51,6 +52,7 @@ class Tapper:
         self.total_keys = 0
         self.user_id = None
         self.proxy = None
+        self.version_config = None
 
     async def run(self, proxy: str | None) -> None:
         self.proxy = proxy
@@ -148,12 +150,24 @@ class Tapper:
         self.upgrades_data = await get_upgrades(http_client=self.http_client)
         await get_tasks(http_client=self.http_client)
         await get_airdrop_tasks(http_client=self.http_client)
-        await get_ip_info(http_client=self.http_client)
+        ip_info = await get_ip_info(http_client=self.http_client)
         await get_skins(http_client=self.http_client)
         self.balance = int(self.profile_data.get('balanceCoins', 0))
         self.earn_on_hour = int(self.profile_data.get('earnPassivePerHour', 0))
         self.available_energy = self.profile_data.get('availableTaps', 0)
         self.total_keys = self.profile_data.get('totalKeys', 0)
+
+        ip = ip_info.get('ip', 'NO')
+        country_code = ip_info.get('country_code', 'NO')
+        city_name = ip_info.get('city_name', 'NO')
+        asn_org = ip_info.get('asn_org', 'NO')
+
+        logger.info(f"{self.session_name} | IP: <lw>{ip}</lw> | Country: <le>{country_code}</le> | "
+                    f"City: <lc>{city_name}</lc> | Network Provider: <lg>{asn_org}</lg>")
+
+        last_passive_earn = int(self.profile_data.get('lastPassiveEarn', 0))
+        logger.info(f"{self.session_name} | Last passive earn: <lg>+{last_passive_earn:,}</lg> | "
+                    f"Earn every hour: <ly>{self.earn_on_hour:,}</ly> | Total keys: <le>{self.total_keys}</le>")
 
     async def handle_daily_combo(self):
         if not settings.APPLY_COMBO:
@@ -265,12 +279,10 @@ class Tapper:
 
             if is_completed:
                 logger.success(f"{self.session_name} | Successfully get daily reward | "
-                                f"Week: <lm>{weeks}</lm> Day: <lm>{days}</lm> | "
-                                f"Reward: <lg>+{reward}</lg>")
+                               f"Week: <lm>{weeks}</lm> Day: <lm>{days}</lm> | "
+                               f"Reward: <lg>+{reward}</lg>")
         else:
             logger.info(f"{self.session_name} | Daily Reward already claimed today")
-
-        await asyncio.sleep(delay=randint(2, 4))
 
     async def handle_daily_cipher(self):
         if not settings.APPLY_DAILY_CIPHER:
@@ -503,18 +515,20 @@ class Tapper:
     async def handle_tasks(self):
         if not settings.AUTO_COMPLETE_TASKS:
             return
-        tasks_config = self.version_config['tasks']
         tasks = await get_tasks(http_client=self.http_client)
+        tasks_config = self.version_config['tasks']
         for task in tasks:
             task_id = task['id']
             is_completed = task['isCompleted']
-            for task in tasks_config:
-                if task.get("id") == task_id:
-                    reward = task['rewardCoins']
+
+            for task_config in tasks_config:
+                if task_config['id'] == task_id:
+                    amount_reward = int(task_config.get('rewardCoins', 0))
+
             if not task_id.startswith('hamster_youtube'):
                 continue
 
-            if not is_completed and reward > 0:
+            if not is_completed and amount_reward > 0:
                 logger.info(f"{self.session_name} | "
                             f"Sleep <lw>3s</lw> before complete <ly>{task_id}</ly> task")
                 await asyncio.sleep(delay=3)
@@ -525,16 +539,14 @@ class Tapper:
                 if is_completed:
                     balance = int(profile_data.get('balanceCoins', 0))
                     logger.success(f"{self.session_name} | "
-                                    f"Successfully completed <ly>{task_id}</ly> task | "
-                                    f"Balance: <lc>{balance}</lc> (<lg>+{reward}</lg>)")
+                                   f"Successfully completed <ly>{task_id}</ly> task | "
+                                   f"Balance: <lc>{balance:,}</lc> (<lg>+{amount_reward:,}</lg>)")
 
                     tasks = await get_tasks(http_client=self.http_client)
                 else:
                     logger.info(f"{self.session_name} | Task <ly>{task_id}</ly> is not complete")
 
         await get_upgrades(http_client=self.http_client)
-
-        await asyncio.sleep(delay=randint(2, 4))
 
     async def handle_exchange(self):
         exchange_id = self.profile_data.get('exchangeId')
@@ -642,15 +654,15 @@ class Tapper:
                     logger.success(f"{self.session_name} | Successfully apply energy boost")
 
                     await asyncio.sleep(delay=1)
-                    pass
+                    return
 
-            await self.close_connections()
-            random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
-            if settings.USE_TAPS:
-                logger.info(f"{self.session_name} | Minimum energy reached: <ly>{self.available_energy:.0f}</ly>")
-            logger.info(f"{self.session_name} | Sleep <lw>{random_sleep:,}s</lw>")
-            await asyncio.sleep(delay=random_sleep)
-            self.access_token_created_time = 0
+        await self.close_connections()
+        random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
+        if settings.USE_TAPS:
+            logger.info(f"{self.session_name} | Minimum energy reached: <ly>{self.available_energy:.0f}</ly>")
+        logger.info(f"{self.session_name} | Sleep <lw>{random_sleep:,}s</lw>")
+        await asyncio.sleep(delay=random_sleep)
+        self.access_token_created_time = 0
 
     async def close_connections(self):
         if self.http_client:
