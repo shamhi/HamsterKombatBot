@@ -15,7 +15,8 @@ async def get_tasks(
         {},
         'getting Tasks',
     )
-    tasks = response_json.get('tasks')
+    tasks = response_json.get('tasks', [])
+
     return tasks
 
 
