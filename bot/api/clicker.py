@@ -16,8 +16,9 @@ async def get_version_config(
         {},
         'getting Version Config',
     )
+    version_config = response_json.get('config')
 
-    return response_json
+    return version_config
 
 
 async def get_game_config(
