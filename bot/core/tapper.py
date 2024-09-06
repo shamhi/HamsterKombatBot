@@ -458,7 +458,6 @@ class Tapper:
                                                 f"Trying again...")
 
                                 await asyncio.sleep(delay=2)
-                            break
 
                     await asyncio.sleep(delay=randint(2, 4))
 
