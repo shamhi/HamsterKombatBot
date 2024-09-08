@@ -1,5 +1,6 @@
 import json
 import asyncio
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 import aiohttp
 
@@ -13,7 +14,7 @@ async def make_request(
         url: str,
         json_data: dict,
         error_context: str,
-        ignore_status: int | None = None,
+        ignore_status: Optional[int] = None,
 ) -> dict:
     response_text = ''
     try:

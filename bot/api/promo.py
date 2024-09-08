@@ -1,4 +1,5 @@
-from typing import Any
+
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 import aiohttp
 
@@ -7,7 +8,7 @@ from bot.api.http import make_request
 
 async def get_apps_info(
         http_client: aiohttp.ClientSession,
-) -> list[dict[str, Any]]:
+) -> List[Dict[str, Any]]:
     response_json = await make_request(
         http_client,
         'GET',
@@ -21,7 +22,7 @@ async def get_apps_info(
 
 async def get_promos(
         http_client: aiohttp.ClientSession
-) -> dict[str, Any]:
+) -> Dict[str, Any]:
     response_json = await make_request(
         http_client,
         'POST',
@@ -35,7 +36,7 @@ async def get_promos(
 
 async def apply_promo(
         http_client: aiohttp.ClientSession, promo_code: str
-) -> tuple[dict[Any, Any], dict[Any, Any], dict[Any, Any]]:
+) -> Tuple[Dict[Any, Any], Dict[Any, Any], Dict[Any, Any]]:
     response_json = await make_request(
         http_client,
         'POST',
