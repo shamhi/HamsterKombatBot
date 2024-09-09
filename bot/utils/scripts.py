@@ -98,8 +98,19 @@ def generate_client_id():
     return f"{time_ms}-{rand_num}"
 
 
-def generate_event_id():
-    return str(uuid.uuid4())
+def generate_event_id(session_name):
+    db = JsonDB("profiles")
+    profiles = db.get_data()
+
+    if "uuid" in profiles[session_name]:
+        return profiles[session_name]["uuid"]
+    else:
+        new_uuid = str(uuid.uuid4())
+        profiles[session_name]["uuid"] = new_uuid
+        
+        db.save_data(profiles)
+        
+        return new_uuid
 
 
 async def get_promo_code(app_token: str,
@@ -118,6 +129,8 @@ async def get_promo_code(app_token: str,
 
     async with aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client:
         client_id = generate_client_id()
+        event_id = generate_event_id(session_name)
+        logger.debug(f"{session_name} | UUID: {event_id}")
 
         json_data = {
             "appToken": app_token,
@@ -144,8 +157,6 @@ async def get_promo_code(app_token: str,
 
         while attempts < max_attempts:
             try:
-
-                event_id = generate_event_id()
                 json_data = {
                     "promoId": promo_id,
                     "eventId": event_id,
