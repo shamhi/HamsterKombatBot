@@ -91,11 +91,27 @@ def get_mobile_user_agent():
     return user_agent
 
 
-def generate_client_id():
-    time_ms = int(time.time() * 1000)
-    rand_num = "34" + str(random.randint(10000000000000000, 99999999999999999))
-
-    return f"{time_ms}-{rand_num}"
+def generate_client_id(session_name, promo_id):
+    
+    db = JsonDB("profiles")
+    profiles = db.get_data()
+    
+    if "games_client_ids" not in profiles[session_name]:
+        profiles[session_name]["games_client_ids"] = {}
+    
+    if promo_id in profiles[session_name]["games_client_ids"]:
+        return profiles[session_name]["games_client_ids"][promo_id]
+        
+    else:
+        time_ms = int(time.time() * 1000)
+        rand_num = "34" + str(random.randint(10000000000000000, 99999999999999999))
+        new_client_id = f"{time_ms}-{rand_num}"
+        
+        profiles[session_name]["games_client_ids"][promo_id] = new_client_id
+        
+        db.save_data(profiles)
+        
+        return new_client_id
 
 
 def generate_event_id():
@@ -117,7 +133,8 @@ async def get_promo_code(app_token: str,
     proxy_conn = aiohttp_proxy.ProxyConnector().from_url(proxy) if proxy else None
 
     async with aiohttp.ClientSession(headers=headers, connector=proxy_conn) as http_client:
-        client_id = generate_client_id()
+        client_id = generate_client_id(session_name, promo_id)
+        logger.debug(f"{session_name} | {promo_title} clientId: {client_id}")
 
         json_data = {
             "appToken": app_token,
