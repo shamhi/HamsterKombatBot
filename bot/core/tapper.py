@@ -183,15 +183,16 @@ class Tapper:
                                         logger.info(f"{self.session_name} | "
                                                     f"<lr>Daily combo is not applicable</lr>, you don't have enough coins. Need <ly>{common_price:,}</ly> coins, but your balance is <lr>{balance:,}</lr> coins")
 
-                                    if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible and daily_combo_roi:
+                                    if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible:
                                         for upgrade in available_combo_cards:
                                             upgrade_id = upgrade['id']
+                                            upgrade_name = upgrade['name']
                                             level = upgrade['level']
                                             price = upgrade['price']
                                             profit = upgrade['profitPerHourDelta']
 
                                             logger.info(f"{self.session_name} | "
-                                                        f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_id}</le>")
+                                                        f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_name}</le>")
 
                                             await asyncio.sleep(delay=5)
 
@@ -202,7 +203,7 @@ class Tapper:
                                                 earn_on_hour += profit
                                                 balance -= price
                                                 logger.success(f"{self.session_name} | "
-                                                            f"Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
+                                                            f"Successfully upgraded <le>{upgrade_name}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
                                                             f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | "
                                                             f"Money left: <le>{balance:,}</le>")
 
@@ -622,12 +623,13 @@ class Tapper:
                                 if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible and daily_combo_roi > -queue[5][0]:
                                     for upgrade in available_combo_cards:
                                         upgrade_id = upgrade['id']
+                                        upgrade_name = upgrade['name']
                                         level = upgrade['level']
                                         price = upgrade['price']
                                         profit = upgrade['profitPerHourDelta']
 
                                         logger.info(f"{self.session_name} | "
-                                                    f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_id}</le>")
+                                                    f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_name}</le>")
 
                                         await asyncio.sleep(delay=5)
 
@@ -638,7 +640,7 @@ class Tapper:
                                             earn_on_hour += profit
                                             balance -= price
                                             logger.success(f"{self.session_name} | "
-                                                        f"Successfully upgraded <le>{upgrade_id}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
+                                                        f"Successfully upgraded <le>{upgrade_name}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
                                                         f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | "
                                                         f"Money left: <le>{balance:,}</le>")
 
