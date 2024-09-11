@@ -671,9 +671,10 @@ class Tapper:
                                     best_card_sleep_seconds = (price - free_money) / earn_on_hour * 3600
                                     logger.info(f"{self.session_name} | "
                                                 f"<lr>Not enough money</lr> for best card <le>{upgrade_name}</le> | "
-                                                f"Sleep <lr>{best_card_sleep_seconds:,.0f}s</lr> for enough <lg>Money</lg>")
+                                                f"Sleep <lr>{best_card_sleep_seconds:,.0f}s</lr> for enough Money")
                                     await asyncio.sleep(delay=best_card_sleep_seconds)
-                                    continue
+                                    balance += (price - free_money)
+                                    status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                                 else:
                                     logger.info(f"{self.session_name} | "
