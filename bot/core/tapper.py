@@ -267,9 +267,11 @@ class Tapper:
 
                             status = await claim_daily_cipher(http_client=http_client, cipher=decoded_cipher)
                             if status is True:
+                                balance += 1000000
                                 logger.success(f"{self.session_name} | "
                                                f"Successfully claim daily cipher: <ly>{decoded_cipher}</ly> | "
                                                f"Bonus: <lg>+{bonus:,}</lg>")
+                            
 
                         await asyncio.sleep(delay=2)
 
@@ -575,9 +577,7 @@ class Tapper:
                             else:
                                 max_price_limit = float('inf')
                             
-                            # Why is it only 80% of free_money, if there is BALANCE_TO_SAVE?
-                            if ((free_money) >= price
-                                    and profit > settings.MIN_PROFIT
+                            if (profit > settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
                                     and price < max_price_limit):
@@ -661,16 +661,32 @@ class Tapper:
 
                             status = False
                             if settings.BEST_CARD_ONLY:
-                                if cooldown_seconds == 0:
+                                if (cooldown_seconds == 0) and (free_money >= price):
                                     logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
                                     await asyncio.sleep(delay=5)
 
                                     status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+                                
+                                elif (cooldown_seconds == 0) and (free_money < price):
+                                    best_card_sleep_seconds = (price - free_money) / earn_on_hour * 3600
+                                    logger.info(f"{self.session_name} | "
+                                                f"<lr>Not enough money</lr> for best card <le>{upgrade_name}</le> | "
+                                                f"Sleep <lr>{best_card_sleep_seconds:,.0f}s</lr> for enough <lg>Money</lg>")
+                                    await asyncio.sleep(delay=best_card_sleep_seconds)
+                                    continue
+
+                                else:
+                                    logger.info(f"{self.session_name} | "
+                                                f"Sleep till best card <le>{upgrade_name}</le> off cooldown | <lr>{cooldown_seconds:,}s</lr>")
+                                    await asyncio.sleep(delay=cooldown_seconds)
+                                    cooldown_seconds = 0
+
                             else:
-                                    logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
-                                    await asyncio.sleep(delay=5)
+                                    if free_money >= price:
+                                        logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
+                                        await asyncio.sleep(delay=5)
 
-                                    status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+                                        status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                             if status is True:
                                 earn_on_hour += profit
@@ -711,15 +727,9 @@ class Tapper:
 
                     if settings.USE_TAPS:
                         logger.info(f"{self.session_name} | Minimum energy reached: <ly>{available_energy:.0f}</ly>")
-                    if settings.BEST_CARD_ONLY:
-                        logger.info(f"{self.session_name} | Sleep till best card <le>{upgrade_name}</le> off cooldown | <lr>{cooldown_seconds:,}s</lr>")
-                    else:
-                        logger.info(f"{self.session_name} | Sleep <lw>{random_sleep:,}s</lw>")
 
-                    if settings.BEST_CARD_ONLY:
-                        await asyncio.sleep(delay=cooldown_seconds)
-                    else:
-                        await asyncio.sleep(delay=random_sleep)
+                    logger.info(f"{self.session_name} | Sleep <lw>{random_sleep:,}s</lw>")
+                    await asyncio.sleep(delay=random_sleep)
 
                     access_token_created_time = 0
 
