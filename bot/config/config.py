@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 
 class Settings(BaseSettings):
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
     API_HASH: str = ''
 
     MIN_AVAILABLE_ENERGY: int = 200
-    SLEEP_BY_MIN_ENERGY: list[int] = [1800, 3600]
+    SLEEP_BY_MIN_ENERGY: List[int] = [1800, 3600]
 
     AUTO_UPGRADE: bool = False
     MAX_LEVEL: int = 20
@@ -27,18 +28,18 @@ class Settings(BaseSettings):
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_MINI_GAME: bool = True
 
-    SLEEP_MINI_GAME_TILES: list[int] = [600, 900]
-    SCORE_MINI_GAME_TILES: list[int] = [300, 500]
-    GAMES_COUNT: list[int] = [1, 10]
+    SLEEP_MINI_GAME_TILES: List[int] = [600, 900]
+    SCORE_MINI_GAME_TILES: List[int] = [300, 500]
+    GAMES_COUNT: List[int] = [1, 10]
 
     AUTO_COMPLETE_TASKS: bool = True
 
     USE_TAPS: bool = True
-    RANDOM_TAPS_COUNT: list[int] = [10, 50]
-    SLEEP_BETWEEN_TAP: list[int] = [10, 25]
+    RANDOM_TAPS_COUNT: List[int] = [10, 50]
+    SLEEP_BETWEEN_TAP: List[int] = [10, 25]
 
     USE_RANDOM_DELAY_IN_RUN: bool = False
-    RANDOM_DELAY_IN_RUN: list[int] = [0, 15]
+    RANDOM_DELAY_IN_RUN: List[int] = [0, 15]
 
     USE_RANDOM_USERAGENT: bool = False
 

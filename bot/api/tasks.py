@@ -1,4 +1,5 @@
-from typing import Any
+
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 import aiohttp
 
@@ -7,7 +8,7 @@ from bot.api.http import make_request
 
 async def get_tasks(
         http_client: aiohttp.ClientSession,
-) -> dict[Any, Any] | Any:
+) -> Union[Dict[Any, Any], Any]:
     response_json = await make_request(
         http_client,
         'POST',
@@ -22,7 +23,7 @@ async def get_tasks(
 
 async def get_airdrop_tasks(
         http_client: aiohttp.ClientSession,
-) -> dict[Any, Any] | Any:
+) -> Union[Dict[Any, Any], Any]:
     response_json = await make_request(
         http_client,
         'POST',
@@ -36,7 +37,7 @@ async def get_airdrop_tasks(
 
 async def check_task(
         http_client: aiohttp.ClientSession, task_id: str
-) -> tuple[dict[Any, Any], dict[Any, Any]]:
+) -> Tuple[Dict[Any, Any], Dict[Any, Any]]:
     response_json = await make_request(
         http_client,
         'POST',
