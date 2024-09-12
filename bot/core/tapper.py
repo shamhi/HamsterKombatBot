@@ -2,7 +2,7 @@ import heapq
 import asyncio
 from time import time
 from random import randint
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Union, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -568,6 +568,8 @@ class Tapper:
                             level = upgrade['level']
                             price = upgrade['price']
                             profit = upgrade['profitPerHourDelta']
+                            expiry_date = datetime.fromisoformat(upgrade.get('expiresAt', "2100-12-12T00:00:00.000Z"))
+                            cooldown_seconds = upgrade.get('cooldownSeconds', 0)
 
                             significance = profit / max(price, 1)
 
@@ -577,7 +579,8 @@ class Tapper:
                             else:
                                 max_price_limit = float('inf')
                             
-                            if (profit > settings.MIN_PROFIT
+                            if (expiry_date > datetime.now(timezone.utc) + timedelta(cooldown_seconds)
+                                    and profit > settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
                                     and price < max_price_limit):
@@ -675,7 +678,7 @@ class Tapper:
                                     logger.info(f"{self.session_name} | "
                                                 f"<lr>Not enough money</lr> for best card <le>{upgrade_name}</le> | "
                                                 f"Sleep <lr>{best_card_sleep_seconds:,.0f}s</lr> for enough Money")
-                                    await asyncio.sleep(delay=best_card_sleep_seconds)
+                                    await asyncio.sleep(delay=best_card_sleep_seconds + 10)
                                     balance += (price - free_money)
                                     status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
@@ -684,6 +687,8 @@ class Tapper:
                                                 f"Sleep till best card <le>{upgrade_name}</le> off cooldown | <lr>{cooldown_seconds:,}s</lr>")
                                     await asyncio.sleep(delay=cooldown_seconds)
                                     cooldown_seconds = 0
+
+                                    status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                             else:
                                     if free_money >= price:
