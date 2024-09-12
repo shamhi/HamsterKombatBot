@@ -651,6 +651,8 @@ class Tapper:
                                     if status is True:
                                         logger.success(f"{self.session_name} | Successfully claimed daily combo | "
                                                     f"Bonus: <lg>+{bonus:,}</lg>")
+                                    
+                                    continue
                         
                         if settings.AUTO_UPGRADE:
                             upgrade_id = upgrade['id']
