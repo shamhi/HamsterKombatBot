@@ -351,7 +351,6 @@ class Tapper:
                                                             b=settings.SLEEP_MINI_GAME_TILES[1])
                                     game_score = randint(a=settings.SCORE_MINI_GAME_TILES[0],
                                                         b=settings.SCORE_MINI_GAME_TILES[1])
-                                    game_sleep_time = 60
 
                                     if game_score > remain_points:
                                         game_score = remain_points
