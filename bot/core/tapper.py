@@ -3,6 +3,7 @@ import asyncio
 from time import time
 from random import randint
 from datetime import datetime, timedelta
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 import aiohttp
 import aiohttp_proxy
@@ -40,7 +41,7 @@ class Tapper:
         self.session_name = tg_client.name
         self.tg_client = tg_client
 
-    async def run(self, proxy: str | None) -> None:
+    async def run(self, proxy: Optional[str]) -> None:
         access_token_created_time = 0
 
         if settings.USE_RANDOM_DELAY_IN_RUN:
@@ -633,7 +634,7 @@ class Tapper:
                 await asyncio.sleep(delay=sleep_between_clicks)
 
 
-async def run_tapper(tg_client: Client, proxy: str | None):
+async def run_tapper(tg_client: Client, proxy: Optional[str]):
     try:
         await Tapper(tg_client=tg_client).run(proxy=proxy)
     except InvalidSession:

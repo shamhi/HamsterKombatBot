@@ -1,5 +1,6 @@
 import asyncio
 from urllib.parse import unquote
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 from pyrogram import Client
 from pyrogram.errors import (
@@ -16,7 +17,7 @@ from bot.utils.proxy import get_proxy_dict
 
 
 async def get_tg_web_data(
-    tg_client: Client, proxy: str | None, session_name: str
+    tg_client: Client, proxy: Optional[str], session_name: str
 ) -> str:
     proxy_dict = get_proxy_dict(proxy)
 

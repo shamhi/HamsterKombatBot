@@ -1,4 +1,5 @@
 import aiohttp
+from typing import Any, Union, Dict, List, Optional, Tuple
 
 from bot.api.http import handle_error, make_request
 from bot.utils.scripts import get_fingerprint
@@ -6,7 +7,7 @@ from bot.utils.scripts import get_fingerprint
 
 async def login(
         http_client: aiohttp.ClientSession, tg_web_data: str, session_name: str
-) -> str | None:
+) -> Optional[str]:
     try:
         fingerprint = get_fingerprint(name=session_name)
         response_json = await make_request(
