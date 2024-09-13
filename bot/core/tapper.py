@@ -579,7 +579,7 @@ class Tapper:
                             else:
                                 max_price_limit = float('inf')
                             
-                            if (expiry_date > datetime.now(timezone.utc) + timedelta(cooldown_seconds)
+                            if (expiry_date > datetime.now(timezone.utc) + timedelta(seconds=cooldown_seconds)
                                     and profit > settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
@@ -686,6 +686,7 @@ class Tapper:
                                     logger.info(f"{self.session_name} | "
                                                 f"Sleep till best card <le>{upgrade_name}</le> off cooldown | <lr>{cooldown_seconds:,}s</lr>")
                                     await asyncio.sleep(delay=cooldown_seconds)
+                                    balance += (cooldown_seconds / 3600 * earn_on_hour)
                                     cooldown_seconds = 0
 
                                     status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
