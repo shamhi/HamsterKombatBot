@@ -13,7 +13,7 @@ from bot.config import settings
 from bot.utils.logger import logger
 from bot.utils.proxy import check_proxy
 from bot.utils.tg_web_data import get_tg_web_data
-from bot.utils.scripts import decode_cipher, get_headers, get_mini_game_cipher, get_promo_code
+from bot.utils.scripts import decode_cipher, get_headers, get_ton_address, get_mini_game_cipher, get_promo_code
 from bot.exceptions import InvalidSession
 
 from bot.api.auth import login
@@ -33,6 +33,7 @@ from bot.api.promo import get_apps_info, get_promos, apply_promo
 from bot.api.minigame import start_daily_mini_game, claim_daily_mini_game
 from bot.api.tasks import get_tasks, get_airdrop_tasks, check_task
 from bot.api.exchange import select_exchange
+from bot.api.wallet import set_ton_wallet
 from bot.api.nuxt import get_nuxt_builds
 
 
@@ -504,6 +505,25 @@ class Tapper:
                             logger.success(f"{self.session_name} | Successfully selected exchange <ly>Bybit</ly>")
 
                     await asyncio.sleep(delay=randint(2, 4))
+
+                    wallet_address = (profile_data.get('airdropTasks', {})
+                                      .get('airdrop_connect_ton_wallet', {})
+                                      .get('walletAddress', 'NO'))
+
+                    if wallet_address == 'NO':
+                        ton_address = get_ton_address(name=self.session_name)
+
+                        if ton_address:
+                            sleep_time = randint(10, 20)
+                            logger.info(f"{self.session_name} | Wallet not found | "
+                                        f"Sleep <lw>{sleep_time}s</lw> before setting <lc>{ton_address}</lc> wallet address")
+
+                            profile_data = await set_ton_wallet(http_client=http_client, address=ton_address)
+                            if profile_data:
+                                logger.success(f"{self.session_name} | "
+                                               f"Successfully set <lc>{ton_address}</lc> wallet address")
+                    else:
+                        logger.info(f"{self.session_name} | Wallet: <lc>{wallet_address}</lc>")
 
                 if settings.USE_TAPS:
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
