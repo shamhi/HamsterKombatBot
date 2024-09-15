@@ -251,19 +251,22 @@
 ```json
 {
   "session1": {
+    "tonAddress": "UQCvE0cNCpBoD6JQ0tFSIGXVissDQGNk6OoBQ8UTlkaQ5lLB",
     "proxy": "http://yGow3a:uBro3wL@58.195.21.83:9715",
     "headers": {},
     "fingerprint": {}
   },
   "session2": {
+    "tonAddress": "UQCvE0cNCpBoD6JQ0tFSIGXVissDQGNk6OoBQ8UTlkaQ5lLB",
     "proxy": "socks5://yGow3a:uBro3wL@58.195.21.83:9715",
     "headers": {},
     "fingerprint": {}
   }
 }
 ```
-> ❕ **Примечание**:  `session1` и `session2` - это примеры названий сессий. 
-> Если `headers` или `fingerprint` пусты, то возьмутся [дефолтные](bot/utils/default.py) данные
+> ❕ **Примечание**:  `session1` и `session2` - это примеры названий сессий.  
+> Если `headers` или `fingerprint` пусты, то возьмутся [дефолтные](bot/utils/default.py) данные.  
+> Поле `tonAddress` подключает TON кошелек к игре, если нет подключенного адреса.
 
 
 ## ⚡ Быстрый старт

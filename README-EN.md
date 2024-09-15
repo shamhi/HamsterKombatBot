@@ -251,19 +251,22 @@ For each session, you can create a profile with unique data:
 ```json
 {
   "session1": {
+    "tonAddress": "UQCvE0cNCpBoD6JQ0tFSIGXVissDQGNk6OoBQ8UTlkaQ5lLB",
     "proxy": "http://yGow3a:uBro3wL@58.195.21.83:9715",
     "headers": {},
     "fingerprint": {}
   },
   "session2": {
+    "tonAddress": "UQCvE0cNCpBoD6JQ0tFSIGXVissDQGNk6OoBQ8UTlkaQ5lLB",
     "proxy": "socks5://yGow3a:uBro3wL@58.195.21.83:9715",
     "headers": {},
     "fingerprint": {}
   }
 }
 ```
-> ❕ Note: session1 and session2 are example session names.
-> If headers or fingerprint are empty, [default](bot/utils/default.py) data will be used.
+> ❕ Note: session1 and session2 are example session names.  
+> If headers or fingerprint are empty, [default](bot/utils/default.py) data will be used.  
+> Field `tonAddress` connects TON wallet to game, if there is no connected address.
 
 
 ## ⚡ Quick Start
