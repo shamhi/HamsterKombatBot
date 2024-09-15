@@ -134,7 +134,9 @@ class Tapper:
                     available_energy = profile_data.get('availableTaps', 0)
                     balance = int(profile_data.get('balanceCoins', 0))
 
-                    upgrades = upgrades_data['upgradesForBuy']
+                    tasks_config = version_config.get('tasks', {})
+                    upgrades = upgrades_data.get('upgradesForBuy', [])
+
                     daily_combo = upgrades_data.get('dailyCombo')
                     if daily_combo and settings.APPLY_COMBO:
                         bonus = daily_combo['bonusCoins']
@@ -213,8 +215,6 @@ class Tapper:
                         is_completed = daily_task['isCompleted']
                         weeks = daily_task['weeks']
                         days = daily_task['days']
-
-                        tasks_config = version_config['tasks']
 
                         for task in tasks_config:
                             if task.get("id") == "streak_days_special":
