@@ -35,20 +35,21 @@ async def get_game_config(
     return response_json
 
 
-async def get_profile_data(http_client: aiohttp.ClientSession) -> Dict[str, Any]:
-    while True:
-        response_json = await make_request(
-            http_client,
-            'POST',
-            'https://api.hamsterkombatgame.io/clicker/sync',
-            {},
-            'getting Profile Data',
-            ignore_status=422,
-        )
+async def get_profile_data(
+        http_client: aiohttp.ClientSession
+) -> Dict[str, Any]:
+    response_json = await make_request(
+        http_client,
+        'POST',
+        'https://api.hamsterkombatgame.io/clicker/sync',
+        {},
+        'getting Profile Data',
+        ignore_status=422,
+    )
 
-        profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
 
-        return profile_data
+    return profile_data
 
 
 async def get_ip_info(
