@@ -12,7 +12,6 @@ import datetime
 import aiohttp
 import aiohttp_proxy
 from fake_useragent import UserAgent
-from playwright.async_api import async_playwright
 
 from bot.config import settings
 from bot.utils.logger import logger
@@ -41,6 +40,16 @@ def escape_html(text: str):
 def decode_cipher(cipher: str):
     encoded = cipher[:3] + cipher[4:]
     return base64.b64decode(encoded).decode('utf-8')
+
+
+def get_mobile_user_agent():
+    ua = UserAgent(platforms=['mobile'], os=['android'])
+    user_agent = ua.random
+    if 'wv' not in user_agent:
+        parts = user_agent.split(')')
+        parts[0] += '; wv'
+        user_agent = ')'.join(parts)
+    return user_agent
 
 
 def get_headers(name: str):
@@ -81,14 +90,13 @@ def get_fingerprint(name: str):
     return fingerprint
 
 
-def get_mobile_user_agent():
-    ua = UserAgent(platforms=['mobile'], os=['android'])
-    user_agent = ua.random
-    if 'wv' not in user_agent:
-        parts = user_agent.split(')')
-        parts[0] += '; wv'
-        user_agent = ')'.join(parts)
-    return user_agent
+def get_ton_address(name: str):
+    db = JsonDB("profiles")
+
+    profiles = db.get_data()
+    ton_address = profiles.get(name, {}).get('tonAddress')
+
+    return ton_address
 
 
 def generate_client_id():
