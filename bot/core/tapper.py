@@ -126,24 +126,24 @@ class Tapper:
                     last_passive_earn = int(profile_data.get('lastPassiveEarn', 0))
                     earn_on_hour = int(profile_data.get('earnPassivePerHour', 0))
                     total_keys = profile_data.get('totalKeys', 0)
-
+                    balance = int(profile_data.get('balanceCoins', 0))
                     logger.info(f"{self.session_name} | Last passive earn: <lg>+{last_passive_earn:,}</lg> | "
-                                f"Earn every hour: <ly>{earn_on_hour:,}</ly> | Total keys: <le>{total_keys}</le>")
+                                f"Earn every hour: <ly>{earn_on_hour:,}</ly> | Total keys: <le>{total_keys}</le> | "
+                                f"Total balance: <ly>{balance:,}</ly>")
 
                     available_energy = profile_data.get('availableTaps', 0)
-                    balance = int(profile_data.get('balanceCoins', 0))
 
                     upgrades = upgrades_data['upgradesForBuy']
                     daily_combo = upgrades_data.get('dailyCombo')
                     if daily_combo and settings.APPLY_COMBO:
                         bonus = daily_combo['bonusCoins']
-                        is_claimed = daily_combo['isClaimed']
+                        is_combo_claimed = daily_combo['isClaimed']
                         upgraded_list = daily_combo['upgradeIds']
 
                         date = ""
                         cards = []
                         available_combo_cards = []
-                        if not is_claimed:
+                        if not is_combo_claimed:
                             combo_cards = await get_combo_cards(http_client=http_client)
                             cards = combo_cards['combo']
                             date = combo_cards['date']
@@ -579,7 +579,7 @@ class Tapper:
                             else:
                                 max_price_limit = float('inf')
                             
-                            if (expiry_date > datetime.now(timezone.utc) + timedelta(seconds=cooldown_seconds)
+                            if (expiry_date > (datetime.now(timezone.utc) + timedelta(seconds=cooldown_seconds))
                                     and profit > settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
@@ -588,12 +588,12 @@ class Tapper:
 
                         if not queue:
                             continue
-                        
+
                         heapq.heapify(queue)
                         top_card = queue[0]
                         upgrade = top_card[2]
 
-                        if settings.APPLY_COMBO and settings.BEST_COMBO_ONLY and not is_claimed:
+                        if settings.APPLY_COMBO and settings.BEST_COMBO_ONLY and not is_combo_claimed:
 
                             start_bonus_round = datetime.strptime(date, "%d-%m-%y").replace(hour=15)
                             end_bonus_round = start_bonus_round + timedelta(days=1)
@@ -615,7 +615,7 @@ class Tapper:
 
                                 elif not daily_combo_roi > -queue[5][0]:
                                     logger.info(f"{self.session_name} | "
-                                                f"<ly>Daily combo is not profitable</ly>. Your coins are better spent on upgrading the <le>{top_card[1]}</le> card.")
+                                                f"<ly>Daily combo is not profitable</ly>. Your coins are better spent on upgrading the <le>{top_card[2]['name']}</le> card.")
                                 
                                 else:
                                     logger.info(f"{self.session_name} | "
@@ -692,7 +692,7 @@ class Tapper:
                                     status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                             else:
-                                    if free_money >= price:
+                                    if free_money >= price and cooldown_seconds == 0:
                                         logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
                                         await asyncio.sleep(delay=5)
 
