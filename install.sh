@@ -72,9 +72,6 @@ source venv/bin/activate
 echo "Installing dependencies..."
 pip install -r requirements.txt
 
-echo "Installing playwright dependencies..."
-playwright install --with-deps
-
 echo "Copying .env-example to .env..."
 cp .env-example .env
 

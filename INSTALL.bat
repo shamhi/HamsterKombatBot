@@ -9,9 +9,6 @@ call venv\Scripts\activate
 echo Installing dependencies...
 pip install -r requirements.txt
 
-echo Installing playwright...
-playwright install --with-deps
-
 echo Copying .env-example to .env...
 copy .env-example .env
 
