@@ -506,24 +506,26 @@ class Tapper:
 
                     await asyncio.sleep(delay=randint(2, 4))
 
-                    wallet_address = (profile_data.get('airdropTasks', {})
-                                      .get('airdrop_connect_ton_wallet', {})
-                                      .get('walletAddress', 'NO'))
+                    wallet_address = (profile_data.get('withdraw', {})
+                                      .get('info', {})
+                                      .get('TonWallet', {})
+                                      .get('depositAddress', 'NO'))
+
+                    logger.info(f"{self.session_name} | Wallet: <lc>{wallet_address}</lc>")
 
                     if wallet_address == 'NO':
                         ton_address = get_ton_address(name=self.session_name)
 
                         if ton_address:
                             sleep_time = randint(10, 20)
-                            logger.info(f"{self.session_name} | Wallet not found | "
+                            logger.info(f"{self.session_name} | "
                                         f"Sleep <lw>{sleep_time}s</lw> before setting <lc>{ton_address}</lc> wallet address")
+                            await asyncio.sleep(delay=sleep_time)
 
                             profile_data = await set_ton_wallet(http_client=http_client, address=ton_address)
                             if profile_data:
                                 logger.success(f"{self.session_name} | "
                                                f"Successfully set <lc>{ton_address}</lc> wallet address")
-                    else:
-                        logger.info(f"{self.session_name} | Wallet: <lc>{wallet_address}</lc>")
 
                 if settings.USE_TAPS:
                     taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
