@@ -662,6 +662,7 @@ class Tapper:
                                     if status is True:
                                         logger.success(f"{self.session_name} | Successfully claimed daily combo | "
                                                     f"Bonus: <lg>+{bonus:,}</lg>")
+                                        is_combo_claimed = True
                                     
                                     continue
                         
