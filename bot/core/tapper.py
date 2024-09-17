@@ -578,13 +578,21 @@ class Tapper:
                                 max_price_limit = max(earn_on_hour, 50000) * 24
                             else:
                                 max_price_limit = float('inf')
-                            
-                            if (expiry_date > (datetime.now(timezone.utc) + timedelta(seconds=cooldown_seconds))
+                            if settings.BEST_CARD_ONLY:
+                                if (expiry_date > (datetime.now(timezone.utc) + timedelta(seconds=cooldown_seconds))
+                                        and profit > settings.MIN_PROFIT
+                                        and level <= settings.MAX_LEVEL
+                                        and price <= settings.MAX_PRICE
+                                        and price < max_price_limit):
+                                    heapq.heappush(queue, (-significance, upgrade_id, upgrade))
+                            else:
+                                if ((free_money) >= price
                                     and profit > settings.MIN_PROFIT
                                     and level <= settings.MAX_LEVEL
                                     and price <= settings.MAX_PRICE
-                                    and price < max_price_limit):
-                                heapq.heappush(queue, (-significance, upgrade_id, upgrade))
+                                    and price < max_price_limit
+                                    and cooldown_seconds == 0):
+                                    heapq.heappush(queue, (-significance, upgrade_id, upgrade))
 
                         if not queue:
                             continue
@@ -623,12 +631,12 @@ class Tapper:
                                     )
 
                                 if common_price < settings.MAX_COMBO_PRICE and balance > common_price and is_combo_accessible and daily_combo_roi > -queue[5][0]:
-                                    for upgrade in available_combo_cards:
-                                        upgrade_id = upgrade['id']
-                                        upgrade_name = upgrade['name']
-                                        level = upgrade['level']
-                                        price = upgrade['price']
-                                        profit = upgrade['profitPerHourDelta']
+                                    for combo_upgrade in available_combo_cards:
+                                        combo_upgrade_id = combo_upgrade['id']
+                                        combo_upgrade_name = combo_upgrade['name']
+                                        combo_level = combo_upgrade['level']
+                                        combo_price = combo_upgrade['price']
+                                        combo_profit = combo_upgrade['profitPerHourDelta']
 
                                         logger.info(f"{self.session_name} | "
                                                     f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_name}</le>")
@@ -636,14 +644,14 @@ class Tapper:
                                         await asyncio.sleep(delay=5)
 
                                         status, upgrades = await buy_upgrade(http_client=http_client,
-                                                                            upgrade_id=upgrade_id)
+                                                                            upgrade_id=combo_upgrade_id)
 
                                         if status is True:
-                                            earn_on_hour += profit
-                                            balance -= price
+                                            earn_on_hour += combo_profit
+                                            balance -= combo_price
                                             logger.success(f"{self.session_name} | "
-                                                        f"Successfully upgraded <le>{upgrade_name}</le> with price <lr>{price:,}</lr> to <m>{level}</m> lvl | "
-                                                        f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{profit:,}</lg>) | "
+                                                        f"Successfully upgraded <le>{upgrade_name}</le> with price <lr>{combo_price:,}</lr> to <m>{combo_level}</m> lvl | "
+                                                        f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{combo_profit:,}</lg>) | "
                                                         f"Money left: <le>{balance:,}</le>")
 
                                             await asyncio.sleep(delay=1)
@@ -692,11 +700,10 @@ class Tapper:
                                     status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                             else:
-                                    if free_money >= price and cooldown_seconds == 0:
-                                        logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
-                                        await asyncio.sleep(delay=5)
+                                logger.info(f"{self.session_name} | Sleep <lw>5s</lw> before upgrade <le>{upgrade_name}</le>")
+                                await asyncio.sleep(delay=5)
 
-                                        status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
+                                status, upgrades = await buy_upgrade(http_client=http_client, upgrade_id=upgrade_id)
 
                             if status is True:
                                 earn_on_hour += profit
