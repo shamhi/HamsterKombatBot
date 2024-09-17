@@ -639,7 +639,7 @@ class Tapper:
                                         combo_profit = combo_upgrade['profitPerHourDelta']
 
                                         logger.info(f"{self.session_name} | "
-                                                    f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{upgrade_name}</le>")
+                                                    f"Sleep <lw>5s</lw> before upgrade <lr>combo</lr> card <le>{combo_upgrade_name}</le>")
 
                                         await asyncio.sleep(delay=5)
 
@@ -650,7 +650,7 @@ class Tapper:
                                             earn_on_hour += combo_profit
                                             balance -= combo_price
                                             logger.success(f"{self.session_name} | "
-                                                        f"Successfully upgraded <le>{upgrade_name}</le> with price <lr>{combo_price:,}</lr> to <m>{combo_level}</m> lvl | "
+                                                        f"Successfully upgraded <le>{combo_upgrade_name}</le> with price <lr>{combo_price:,}</lr> to <m>{combo_level}</m> lvl | "
                                                         f"Earn every hour: <ly>{earn_on_hour:,}</ly> (<lg>+{combo_profit:,}</lg>) | "
                                                         f"Money left: <le>{balance:,}</le>")
 
