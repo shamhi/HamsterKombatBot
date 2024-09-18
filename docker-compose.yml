@@ -1,4 +1,3 @@
-version: '3'
 services:
   bot:
     container_name: 'HamsterKombatBot'
@@ -11,8 +10,5 @@ services:
       - main.py
       - -a
       - '2'
-    volumes:
-      - ./sessions:/app/sessions
-      - ./profiles.json:/app/profiles.json
     env_file:
       - .env
