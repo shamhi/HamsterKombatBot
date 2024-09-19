@@ -15,11 +15,14 @@ class Settings(BaseSettings):
     MAX_LEVEL: int = 20
     MIN_PROFIT: int = 1000
     MAX_PRICE: int = 50000000
+    MAX_PRICE_LIMIT: bool = False
+    BEST_CARD_ONLY: bool = False
 
     BALANCE_TO_SAVE: int = 1000000
     UPGRADES_COUNT: int = 10
 
     MAX_COMBO_PRICE: int = 10000000
+    BEST_COMBO_ONLY: bool = False
 
     APPLY_COMBO: bool = True
     APPLY_PROMO_CODES: bool = True
