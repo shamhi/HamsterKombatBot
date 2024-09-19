@@ -5,6 +5,7 @@
 
 ![demo image](.github/images/demo.png)
 
+
 ## ⚙ [Настройки](.env-example)
 <details>
   <summary><b>API_ID / API_HASH</b> - Данные платформы</summary>
@@ -261,12 +262,10 @@
   }
 }
 ```
-
-
 > [!NOTE]
 > `session1` и `session2` - это примеры названий сессий.  
-> Если `headers` или `fingerprint` пусты, то возьмутся [дефолтные](bot/utils/default.py) данные.  
-> Поле `tonAddress` подключает TON кошелек к игре, если нет подключенного адреса.
+> Если `headers` или `fingerprint` пусты, то возьмутся [дефолтные](bot/utils/default.py) значения.  
+> Поле `tonAddress` подключает TON кошелек к игре, если нет подключенного.
 
 
 ## ⚡ Быстрый старт
