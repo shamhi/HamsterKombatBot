@@ -5,7 +5,7 @@ services:
       context: .
     stop_signal: SIGINT
     restart: unless-stopped
-    command: 
+    command:
       - python3
       - main.py
       - -a
