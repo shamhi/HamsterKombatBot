@@ -12,7 +12,7 @@ async def get_boosts(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/boosts-for-buy',
+        'https://api.hamsterkombatgame.io/interlude/boosts-for-buy',
         {},
         'getting Boosts',
     )
@@ -28,7 +28,7 @@ async def apply_boost(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/buy-boost',
+        'https://api.hamsterkombatgame.io/interlude/buy-boost',
         {'timestamp': int(time()), 'boostId': boost_id},
         'Apply Boost',
     )

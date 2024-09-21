@@ -9,7 +9,7 @@ async def claim_daily_cipher(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/claim-daily-cipher',
+        'https://api.hamsterkombatgame.io/interlude/claim-daily-cipher',
         {'cipher': cipher},
         'Claim Daily Cipher',
     )

@@ -12,7 +12,7 @@ async def get_upgrades(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/upgrades-for-buy',
+        'https://api.hamsterkombatgame.io/interlude/upgrades-for-buy',
         {},
         'getting Upgrades',
     )
@@ -26,7 +26,7 @@ async def buy_upgrade(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/buy-upgrade',
+        'https://api.hamsterkombatgame.io/interlude/buy-upgrade',
         {'timestamp': int(time()), 'upgradeId': upgrade_id},
         'buying Upgrade',
         ignore_status=422,

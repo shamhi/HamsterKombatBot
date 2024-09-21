@@ -26,7 +26,7 @@ async def get_promos(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/get-promos',
+        'https://api.hamsterkombatgame.io/interlude/get-promos',
         {},
         'getting Promos'
     )
@@ -40,13 +40,13 @@ async def apply_promo(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/apply-promo',
+        'https://api.hamsterkombatgame.io/interlude/apply-promo',
         {'promoCode': promo_code},
         'Apply Promo',
         ignore_status=422
     )
 
-    profile_data = response_json.get('clickerUser', {}) or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('interludeUser', {}) or response_json.get('found', {}).get('interludeUser', {})
     promo_state = response_json.get('promoState', {}) or response_json.get('found', {}).get('promoState', {})
     reward_promo = response_json.get('reward', {}) or response_json.get('found', {}).get('reward', {})
 

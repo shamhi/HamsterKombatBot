@@ -5,13 +5,29 @@ import aiohttp
 from bot.api.http import make_request
 
 
+async def get_withdraw_list(
+        http_client: aiohttp.ClientSession
+) -> Dict[str, Any]:
+    response_json = await make_request(
+        http_client,
+        'POST',
+        'https://api.hamsterkombatgame.io/interlude/withdraw/list',
+        {},
+        'getting Withdraw List'
+    )
+
+    withdraw_list = response_json
+
+    return withdraw_list
+
+
 async def set_ton_wallet(
         http_client: aiohttp.ClientSession, address: str
 ) -> Dict[str, Any]:
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/withdraw/set-wallet-as-default',
+        'https://api.hamsterkombatgame.io/interlude/withdraw/set-wallet-as-default',
         {
             "id": "TonWallet",
             "walletAddress": address
@@ -20,6 +36,6 @@ async def set_ton_wallet(
         422
     )
 
-    profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('interludeUser') or response_json.get('found', {}).get('interludeUser', {})
 
     return profile_data

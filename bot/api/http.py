@@ -20,9 +20,9 @@ async def make_request(
     try:
         response = await http_client.request(method=method, url=url, json=json_data, ssl=False)
 
-        config_version = response.headers.get('Config-Version')
-        if config_version and not http_client.headers.get('Config-Version'):
-            http_client.headers['Config-Version'] = config_version
+        config_version = response.headers.get('Interlude-Config-Version')
+        if config_version and not http_client.headers.get('Interlude-Config-Version'):
+            http_client.headers['Interlude-Config-Version'] = config_version
 
         response_text = await response.text()
         if ignore_status is None or response.status != ignore_status:
@@ -36,7 +36,7 @@ async def make_request(
 
 async def handle_error(error: Exception, response_text: str, context: str):
     logger.error(
-        f'Unknown error while {context}: {error} | '
-        f'Response text: {escape_html(response_text)[:256]}...'
+        f"Unknown error while {context}: <lr>{error}</lr> | "
+        f"Response text: {escape_html(response_text)[:256]}..."
     )
     await asyncio.sleep(delay=3)

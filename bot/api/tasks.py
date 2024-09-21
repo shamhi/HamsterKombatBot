@@ -12,7 +12,7 @@ async def get_tasks(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/list-tasks',
+        'https://api.hamsterkombatgame.io/interlude/list-tasks',
         {},
         'getting Tasks',
     )
@@ -27,7 +27,7 @@ async def get_airdrop_tasks(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/list-airdrop-tasks',
+        'https://api.hamsterkombatgame.io/interlude/list-airdrop-tasks',
         {},
         'getting Airdrop Tasks',
     )
@@ -41,13 +41,13 @@ async def check_task(
     response_json = await make_request(
         http_client,
         'POST',
-        'https://api.hamsterkombatgame.io/clicker/check-task',
+        'https://api.hamsterkombatgame.io/interlude/check-task',
         {'taskId': task_id},
         'Check Task',
         ignore_status=422
     )
 
     task = response_json.get('task', {}) or response_json.get('found', {}).get('task')
-    profile_data = response_json.get('clickerUser') or response_json.get('found', {}).get('clickerUser', {})
+    profile_data = response_json.get('interludeUser') or response_json.get('found', {}).get('interludeUser', {})
 
     return task, profile_data
