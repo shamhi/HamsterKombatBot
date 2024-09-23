@@ -39,7 +39,7 @@ async def register_sessions():
 
     logger.success(f'Session added successfully @{user_data.username} | {user_data.first_name} {user_data.last_name}')
 
-    db = JsonDB("profiles")
+    db = JsonDB("sessions/profiles")
 
     data = db.get_data()
 
