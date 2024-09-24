@@ -32,13 +32,15 @@ def get_proxy_string(name: str):
 
 
 async def check_proxy(
-    http_client: aiohttp.ClientSession, proxy: str, session_name: str
+        http_client: aiohttp.ClientSession, proxy: str, session_name: str
 ) -> None:
     try:
-        response = await http_client.get(
-            url='https://httpbin.org/ip', timeout=aiohttp.ClientTimeout(5)
-        )
-        ip = (await response.json()).get('origin')
-        logger.info(f'{session_name} | Proxy IP: {ip}')
+        response = await http_client.get(url='https://ipinfo.io/json', timeout=aiohttp.ClientTimeout(5))
+        response.raise_for_status()
+
+        response_json = await response.json()
+        ip = response_json.get('ip', 'NO')
+
+        logger.info(f'{session_name} | Proxy IP: <lw>{ip}</lw>')
     except Exception as error:
         logger.error(f'{session_name} | Proxy: <le>{proxy}</le> | Error: <lr>{error}</lr>')
