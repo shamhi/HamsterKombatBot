@@ -80,8 +80,6 @@ def get_headers(name: str):
 
             db.save_data(profiles)
 
-        return headers
-
     return headers
 
 
