@@ -57,25 +57,30 @@ def get_headers(name: str):
 
     profiles = db.get_data()
 
-    headers = profiles.get(name, {}).get('headers', DEFAULT_HEADERS)
+    headers = profiles.get(name, {}).get('headers', {})
 
-    if settings.USE_RANDOM_USERAGENT:
-        android_version = random.randint(24, 33)
-        webview_version = random.randint(70, 125)
+    if not headers or not isinstance(headers, dict):
+        headers = DEFAULT_HEADERS
 
-        headers['Sec-Ch-Ua'] = (
-            f'"Android WebView";v="{webview_version}", '
-            f'"Chromium";v="{webview_version}", '
-            f'"Not?A_Brand";v="{android_version}"'
-        )
-        headers['User-Agent'] = get_mobile_user_agent()
+        if settings.USE_RANDOM_USERAGENT:
+            android_version = random.randint(24, 33)
+            webview_version = random.randint(70, 125)
 
-        if not profiles.get(name):
-            profiles[name] = {"proxy": "", "headers": headers}
-        else:
-            profiles[name]["headers"] = headers
+            headers['Sec-Ch-Ua'] = (
+                f'"Android WebView";v="{webview_version}", '
+                f'"Chromium";v="{webview_version}", '
+                f'"Not?A_Brand";v="{android_version}"'
+            )
+            headers['User-Agent'] = get_mobile_user_agent()
 
-        db.save_data(profiles)
+            if not profiles.get(name):
+                profiles[name] = {"tonAddress": "", "proxy": "", "headers": headers, "fingerprint": {}}
+            else:
+                profiles[name]["headers"] = headers
+
+            db.save_data(profiles)
+
+        return headers
 
     return headers
 
