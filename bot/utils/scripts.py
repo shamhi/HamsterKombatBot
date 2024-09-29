@@ -53,7 +53,7 @@ def get_mobile_user_agent():
 
 
 def get_headers(name: str):
-    db = JsonDB("profiles")
+    db = JsonDB("sessions/profiles")
 
     profiles = db.get_data()
 
@@ -84,7 +84,7 @@ def get_headers(name: str):
 
 
 def get_fingerprint(name: str):
-    db = JsonDB("profiles")
+    db = JsonDB("sessions/profiles")
 
     profiles = db.get_data()
     fingerprint = profiles.get(name, {}).get('fingerprint', DEFAULT_FINGERPRINT)
@@ -94,7 +94,7 @@ def get_fingerprint(name: str):
 
 
 def get_ton_address(name: str):
-    db = JsonDB("profiles")
+    db = JsonDB("sessions/profiles")
 
     profiles = db.get_data()
     ton_address = profiles.get(name, {}).get('tonAddress')

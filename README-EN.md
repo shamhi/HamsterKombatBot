@@ -236,7 +236,7 @@
 
 <details>
   <summary><b>USE_RANDOM_USERAGENT</b> - Use Random User Agent</summary>
-  <p>When enabled, the bot will use random User-Agents for each account and save them in `profiles.json` for future use, to increase anonymity and protection against bans.</p>
+  <p>When enabled, the bot will use random User-Agents for each account and save them in `sessions/profiles.json` for future use, to increase anonymity and protection against bans.</p>
   <ul>
     <li><strong>Example:</strong> <code>True / False</code></li>
     <li><strong>Default:</strong> <code>False</code></li>
