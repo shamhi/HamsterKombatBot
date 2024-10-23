@@ -23,7 +23,7 @@ def get_proxy_dict(proxy: str):
 
 
 def get_proxy_string(name: str):
-    db = JsonDB("profiles")
+    db = JsonDB("sessions/profiles")
 
     data = db.get_data()
     proxy = data.get(name, {}).get("proxy", "")
