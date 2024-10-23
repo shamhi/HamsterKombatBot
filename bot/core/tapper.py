@@ -295,15 +295,15 @@ class Tapper:
                                     continue
 
                                 title = promo['title']['en']
-                                keys_per_day = promo['keysPerDay']
+                                rewards_per_day = promo['rewardsPerDay']
 
                                 today_promo_activates_count = promo_activates.get(promo_id, 0)
 
-                                if today_promo_activates_count >= keys_per_day:
+                                if today_promo_activates_count >= rewards_per_day:
                                     logger.info(f"{self.session_name} | "
                                                 f"Promo Codes already claimed today for <lm>{title}</lm> game")
 
-                                while today_promo_activates_count < keys_per_day:
+                                while today_promo_activates_count < rewards_per_day:
                                     promo_code = await get_promo_code(app_token=app_token,
                                                                       promo_id=promo_id,
                                                                       promo_title=title,
@@ -328,7 +328,7 @@ class Tapper:
 
                                         logger.success(f"{self.session_name} | "
                                                        f"Successfully activated promo code in <lm>{title}</lm> game | "
-                                                       f"Get <ly>{today_promo_activates_count}</ly><lw>/</lw><ly>{keys_per_day}</ly> diamonds | "
+                                                       f"Get <ly>{today_promo_activates_count}</ly><lw>/</lw><ly>{rewards_per_day}</ly> diamonds | "
                                                        f"<lg>+{amount_reward:,} {type_reward}</lg> | "
                                                        f"Balance: <le>{balance:,.3f}</le>")
                                     else:
